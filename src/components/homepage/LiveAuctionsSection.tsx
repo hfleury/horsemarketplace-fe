@@ -12,8 +12,8 @@ export default function LiveAuctionsSection() {
                 {/* Section header */}
                 <div className="mb-12 flex items-center justify-between">
                     <div>
-                        <h2 className="text-4xl font-bold text-white">Live Auctions</h2>
-                        <p className="mt-2 text-text-secondary">Place your bids on trending items</p>
+                        <h2 className="text-4xl font-bold text-white">Featured Horses</h2>
+                        <p className="mt-2 text-text-secondary">Browse our premium selection</p>
                     </div>
                     <Button variant="outline" className="hidden md:inline-flex">
                         View All
@@ -30,7 +30,7 @@ export default function LiveAuctionsSection() {
                             header={
                                 <div className="flex items-center justify-between">
                                     <Badge variant="info" size="sm">
-                                        Live
+                                        For Sale
                                     </Badge>
                                     <button className="text-white hover:text-accent-purple transition-colors">
                                         <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
@@ -66,8 +66,8 @@ export default function LiveAuctionsSection() {
                                 {/* Current bid */}
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-xs text-text-muted">Current Bid</p>
-                                        <p className="text-lg font-bold text-white">{auction.currentBid} ETH</p>
+                                        <p className="text-xs text-text-muted">Price</p>
+                                        <p className="text-lg font-bold text-white">${auction.currentBid.toLocaleString()}</p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-xs text-text-muted">Bids</p>
@@ -92,7 +92,7 @@ export default function LiveAuctionsSection() {
 
                 {/* Mobile view all button */}
                 <div className="mt-8 text-center md:hidden">
-                    <Button variant="outline">View All Auctions</Button>
+                    <Button variant="outline">View All Horses</Button>
                 </div>
             </Container>
         </section>

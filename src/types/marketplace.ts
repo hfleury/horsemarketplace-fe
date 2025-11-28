@@ -6,7 +6,7 @@ export interface User {
     walletAddress?: string;
 }
 
-export interface NFTItem {
+export interface MarketplaceItem {
     id: string;
     title: string;
     image: string;
@@ -33,7 +33,7 @@ export interface Collection {
 
 export interface Auction {
     id: string;
-    item: NFTItem;
+    item: MarketplaceItem;
     startTime: Date;
     endTime: Date;
     currentBid: number;

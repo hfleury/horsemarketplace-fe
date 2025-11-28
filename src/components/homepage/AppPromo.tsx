@@ -1,4 +1,3 @@
-import React from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 
@@ -9,8 +8,8 @@ export default function AppPromo() {
     <Card className="flex flex-col md:flex-row items-center gap-8">
       <div className="flex-1">
         <h3 className="text-2xl font-bold mb-4">
-          Download Xhibiter app<br />
-          to track your NFT portfolio and discover drops
+          Download HorseMarket app<br />
+          to manage your stable and discover new listings
         </h3>
         <div className="flex space-x-4">
           <Button>App Store</Button>

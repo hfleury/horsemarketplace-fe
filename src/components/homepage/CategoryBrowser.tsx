@@ -9,7 +9,7 @@ export default function CategoryBrowser() {
                 <div className="mb-12 text-center">
                     <h2 className="text-4xl font-bold text-white">Browse by Category</h2>
                     <p className="mt-4 text-lg text-text-secondary">
-                        Explore our diverse collection of horse NFTs
+                        Explore our diverse collection of horses and equipment
                     </p>
                 </div>
 

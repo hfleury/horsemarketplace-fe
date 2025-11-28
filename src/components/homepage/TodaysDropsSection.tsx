@@ -1,4 +1,3 @@
-import React from 'react';
 import Card from '../ui/Card';
 import SectionTitle from '../ui/SectionTitle';
 import Avatar from '../ui/Avatar';
@@ -13,7 +12,7 @@ const avatars = [
 export default function TodaysDropsSection() {
   return (
     <Card>
-      <SectionTitle title="Today's Drops" className="mb-6" />
+      <SectionTitle title="New Arrivals" className="mb-6" />
       <div className="flex justify-center space-x-4">
         {avatars.map((src, i) => (
           <Avatar key={i} src={src} size="md" />

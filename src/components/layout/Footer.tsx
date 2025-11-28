@@ -65,7 +65,7 @@ export default function Footer() {
                                 <span className="text-xl font-bold text-white">HorseMarket</span>
                             </a>
                             <p className="mt-4 text-sm text-text-secondary">
-                                The premier marketplace for discovering, collecting, and trading unique horse NFTs.
+                                The premier marketplace for discovering and buying premium horses and equestrian equipment.
                             </p>
                             {/* Social links */}
                             <div className="mt-6 flex space-x-4">
