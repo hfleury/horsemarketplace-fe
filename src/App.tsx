@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { authApi } from './api/auth';
 import AuthAlert from './components/auth/AuthAlert';
 import LoginForm from './components/auth/LoginForm';
+import ResendVerification from './components/auth/ResendVerification';
 import PageLayout from './components/layout/PageLayout';
 import HomePage from './app/HomePage';
 
@@ -64,6 +65,17 @@ function AppContent() {
       // ignore
     }
   }, []);
+
+  // If user navigated directly to /resend-verification, show the dedicated page
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  if (pathname === '/resend-verification') {
+    return (
+      <PageLayout>
+        {verifyMessage && <AuthAlert severity={verifySeverity} message={verifyMessage} />}
+        <ResendVerification />
+      </PageLayout>
+    );
+  }
 
   if (showLogin && !user) {
     return (
