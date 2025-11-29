@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FC } from 'react';
 import Alert from '@mui/material/Alert';
 import type { AlertColor } from '@mui/material';
 
@@ -7,7 +7,7 @@ interface AuthAlertProps {
   message: string;
 }
 
-const AuthAlert: React.FC<AuthAlertProps> = ({ severity, message }) => (
+const AuthAlert: FC<AuthAlertProps> = ({ severity, message }) => (
   <Alert severity={severity} sx={{ mt: 2 }}>
     {message}
   </Alert>

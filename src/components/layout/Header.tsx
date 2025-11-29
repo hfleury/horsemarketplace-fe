@@ -105,7 +105,10 @@ export default function Header() {
                                 )}
                             </div>
                         ) : (
-                            <div className="hidden lg:block">
+                            <div className="hidden lg:flex items-center space-x-3">
+                                <Button variant="outline" size="sm" onClick={() => { window.location.href = '/signup'; }}>
+                                    Sign Up
+                                </Button>
                                 <Button variant="gradient" size="sm" onClick={handleLoginClick}>
                                     Login
                                 </Button>
@@ -152,9 +155,14 @@ export default function Header() {
                     ))}
                     <div className="pt-4 border-t border-dark-300">
                         {!user && (
-                            <Button variant="gradient" size="md" className="w-full" onClick={handleLoginClick}>
-                                Login
-                            </Button>
+                            <div className="space-y-3">
+                                <Button variant="gradient" size="md" className="w-full" onClick={handleLoginClick}>
+                                    Login
+                                </Button>
+                                <Button variant="outline" size="md" className="w-full" onClick={() => { window.location.href = '/signup'; setMobileMenuOpen(false); }}>
+                                    Sign Up
+                                </Button>
+                            </div>
                         )}
                     </div>
                 </nav>
