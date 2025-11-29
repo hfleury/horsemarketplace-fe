@@ -17,7 +17,10 @@ const LoginForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(username, password);
+      // Normalize client-side: trim username; if it's an email, lowercase it
+      const input = username.trim();
+      const normalized = input.includes('@') ? input.toLowerCase() : input;
+      await login(normalized, password);
       // Redirect happens in App.tsx via router (or here if no router yet)
     } catch (err) {
       // Error already handled in context; UI shows via `error`
@@ -35,7 +38,8 @@ const LoginForm = () => {
 
     setResendLoading(true);
     try {
-      await authApi.resendVerification(username);
+      // normalize email client-side
+      await authApi.resendVerification(username.trim().toLowerCase());
       setResendSeverity('success');
       setResendMessage('Verification email sent — check your inbox.');
     } catch (err: any) {
