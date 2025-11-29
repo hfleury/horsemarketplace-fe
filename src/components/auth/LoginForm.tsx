@@ -114,6 +114,17 @@ const LoginForm = () => {
       >
         {loading ? 'Signing in...' : 'Sign In'}
       </Button>
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Button
+          variant="text"
+          onClick={() => {
+            // navigate to signup page
+            window.location.href = '/signup';
+          }}
+        >
+          Don't have an account? Create one
+        </Button>
+      </Box>
     </Box>
   );
 };

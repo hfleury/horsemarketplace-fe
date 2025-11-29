@@ -64,6 +64,14 @@ export default function Footer() {
                                 <div className="h-8 w-8 rounded-lg bg-gradient-primary" />
                                 <span className="text-xl font-bold text-white">HorseMarket</span>
                             </a>
+                            <div className="mt-4">
+                                <a
+                                    href="/signup"
+                                    className="inline-block px-4 py-2 rounded-lg border border-dark-300 text-sm text-text-secondary hover:bg-dark-300 hover:text-white"
+                                >
+                                    Sign Up
+                                </a>
+                            </div>
                             <p className="mt-4 text-sm text-text-secondary">
                                 The premier marketplace for discovering and buying premium horses and equestrian equipment.
                             </p>

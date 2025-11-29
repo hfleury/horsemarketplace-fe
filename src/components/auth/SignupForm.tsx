@@ -42,6 +42,14 @@ const SignupForm = () => {
       await authApi.createUser({ username: u, email: em, password });
       setSeverity('success');
       setMessage('Account created. Check your email for a verification link.');
+      // After successful signup, navigate to home and open the login modal
+      try {
+        window.history.replaceState({}, '', '/');
+        window.dispatchEvent(new Event('show-login'));
+      } catch (e) {
+        // fallback: navigate
+        window.location.href = '/';
+      }
       // Optionally clear form or suggest next steps
     } catch (err: any) {
       // Attempt to parse a JSON message from server error text
@@ -109,6 +117,22 @@ const SignupForm = () => {
       <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }} disabled={loading}>
         {loading ? 'Creating account...' : 'Create Account'}
       </Button>
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Button
+          variant="text"
+          onClick={() => {
+            // navigate to home and open login modal
+            try {
+              window.history.replaceState({}, '', '/');
+              window.dispatchEvent(new Event('show-login'));
+            } catch (e) {
+              window.location.href = '/';
+            }
+          }}
+        >
+          Already have an account? Sign in
+        </Button>
+      </Box>
     </Box>
   );
 };
