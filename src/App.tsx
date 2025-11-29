@@ -6,6 +6,7 @@ import { authApi } from './api/auth';
 import AuthAlert from './components/auth/AuthAlert';
 import LoginForm from './components/auth/LoginForm';
 import ResendVerification from './components/auth/ResendVerification';
+import SignupForm from './components/auth/SignupForm';
 import PageLayout from './components/layout/PageLayout';
 import HomePage from './app/HomePage';
 
@@ -73,6 +74,19 @@ function AppContent() {
       <PageLayout>
         {verifyMessage && <AuthAlert severity={verifySeverity} message={verifyMessage} />}
         <ResendVerification />
+      </PageLayout>
+    );
+  }
+
+  // Show signup page if navigated to /signup
+  if (pathname === '/signup') {
+    return (
+      <PageLayout>
+        {verifyMessage && <AuthAlert severity={verifySeverity} message={verifyMessage} />}
+        <div className="w-full max-w-md p-8 bg-dark-200 rounded-2xl border border-dark-300">
+          <h1 className="text-3xl font-bold text-white text-center mb-4">Create an account</h1>
+          <SignupForm />
+        </div>
       </PageLayout>
     );
   }
