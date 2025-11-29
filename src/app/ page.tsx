@@ -1,4 +1,3 @@
-import React from 'react';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import HotBidsSection from '../components/homepage/HotBidsSection';
@@ -7,7 +6,6 @@ import TopSellersSection from '../components/homepage/TopSellersSection';
 import TopBuyersSection from '../components/homepage/TopBuyersSection';
 import LiveAuctionsSection from '../components/homepage/LiveAuctionsSection';
 import CategoryBrowser from '../components/homepage/CategoryBrowser';
-import Testimonial from '../components/homepage/Testimonial';
 import AppPromo from '../components/homepage/AppPromo';
 
 export default function HomePage() {
@@ -23,7 +21,6 @@ export default function HomePage() {
         </div>
         <LiveAuctionsSection />
         <CategoryBrowser />
-        <Testimonial />
         <AppPromo />
       </main>
       <Footer />

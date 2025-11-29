@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { authApi } from './api/auth';
+import AuthAlert from './components/auth/AuthAlert';
 import LoginForm from './components/auth/LoginForm';
 import PageLayout from './components/layout/PageLayout';
 import HomePage from './app/HomePage';
@@ -23,12 +25,44 @@ const darkTheme = createTheme({
 function AppContent() {
   const { user } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
+  const [verifyMessage, setVerifyMessage] = useState<string | null>(null);
+  const [verifySeverity, setVerifySeverity] = useState<'success' | 'error' | 'info'>('info');
 
   // Listen for login event from Header
   useEffect(() => {
     const handleShowLogin = () => setShowLogin(true);
     window.addEventListener('show-login', handleShowLogin);
     return () => window.removeEventListener('show-login', handleShowLogin);
+  }, []);
+
+  // Check for email verification token in URL and attempt verification
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
+      if (!token) return;
+
+      // perform verification
+      authApi
+        .verify(token)
+        .then(() => {
+          setVerifySeverity('success');
+          setVerifyMessage('Your email has been verified. Thank you!');
+        })
+        .catch((err: any) => {
+          setVerifySeverity('error');
+          setVerifyMessage(err?.message || 'Failed to verify email. The token may be invalid or expired.');
+        })
+        .finally(() => {
+          // remove token param from URL to avoid repeated attempts
+          params.delete('token');
+          const newQuery = params.toString();
+          const newUrl = window.location.pathname + (newQuery ? `?${newQuery}` : '');
+          window.history.replaceState({}, '', newUrl);
+        });
+    } catch (e) {
+      // ignore
+    }
   }, []);
 
   if (showLogin && !user) {
@@ -54,6 +88,7 @@ function AppContent() {
 
   return (
     <PageLayout>
+      {verifyMessage && <AuthAlert severity={verifySeverity} message={verifyMessage} />}
       <HomePage />
     </PageLayout>
   );

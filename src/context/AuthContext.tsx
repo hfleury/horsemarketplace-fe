@@ -48,7 +48,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('authToken', newToken);
       localStorage.setItem('authUser', JSON.stringify(newUser));
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      // Try to extract a helpful message from backend JSON response text
+      let msg = 'Login failed';
+      try {
+        // apiFetch throws Error with response text in message like "HTTP 401: {\"status\":...}"
+        const match = /{.*}/.exec(err.message || '');
+        if (match) {
+          const parsed = JSON.parse(match[0]);
+          if (parsed && parsed.message) msg = parsed.message;
+        } else if (err.message) {
+          msg = err.message;
+        }
+      } catch (e) {
+        // fall back
+        msg = err.message || msg;
+      }
+
+      setError(msg);
       throw err;
     } finally {
       setLoading(false);
