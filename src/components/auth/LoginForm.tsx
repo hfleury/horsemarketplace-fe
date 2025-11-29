@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
 import FormTextField from '../ui/FormTextField';
 import { useAuth } from '../../hooks/useAuth';
 import AuthAlert from './AuthAlert';
