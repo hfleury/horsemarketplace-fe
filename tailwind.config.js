@@ -57,6 +57,7 @@ export default {
         bodydark2: '#8A99AF',
         graydark: '#333A48',
         'meta-4': '#313D4A',
+        primary: '#3C50E0',
       },
       backgroundImage: {
         'gradient-primary': 'linear-gradient(135deg, #8358FF 0%, #3B82F6 100%)',
