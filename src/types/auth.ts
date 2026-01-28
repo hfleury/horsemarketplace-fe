@@ -3,6 +3,7 @@ export interface User {
     email: string;
     avatar?: string;
     verified?: boolean;
+    role?: string;
 }
 
 export interface AuthResponse {
