@@ -1,172 +1,198 @@
-import { useState } from 'react';
-import { cn } from '../../lib/cn';
-import Button from '../ui/Button';
+import { useState, useEffect } from 'react';
+import { Search, Wallet, User, Menu, X, Sun, Moon } from 'lucide-react';
+import { Button } from '../common/Button';
+import { Link, useLocation } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 
-export default function Header() {
+export const Header = () => {
+    const [isScrolled, setIsScrolled] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const location = useLocation();
+    const { theme, setTheme } = useTheme();
     const { user, logout } = useAuth();
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 20);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const navLinks = [
-        { label: 'Home', href: '/' },
-        { label: 'Pages', href: '#' },
-        { label: 'Explore', href: '#explore' },
-        { label: 'Resources', href: '#' },
-        { label: 'Create', href: '/create' },
+        { name: 'Home', path: '/' },
+        { name: 'Pages', path: '/pages' },
+        { name: 'Explore', path: '/explore' },
+        { name: 'Resources', path: '/resources' },
+        { name: 'Create', path: '/create' },
     ];
 
-    const handleLoginClick = () => {
-        window.dispatchEvent(new Event('show-login'));
-        setMobileMenuOpen(false);
-    };
-
-    const handleLogout = () => {
-        logout();
-        setProfileMenuOpen(false);
-        setMobileMenuOpen(false);
-    };
-
     return (
-        <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-dark/80 backdrop-blur-lg transition-colors">
-            <div className="flex items-center px-6 py-6 xl:px-24">
+        <header
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
+                ? 'bg-background/80 backdrop-blur-md border-b border-dark-200/50 py-3'
+                : 'bg-transparent py-5'
+                }`}
+        >
+            <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
                 {/* Logo */}
-                <a href="/" className="shrink-0 flex items-center space-x-2">
-                    <div className="h-8 w-8 rounded-lg bg-gradient-primary" />
-                    <span className="text-xl font-bold text-white">HorseMarket</span>
-                </a>
-
-                {/* Search Bar */}
-                <form className="relative ml-12 mr-8 hidden basis-3/12 lg:block xl:ml-[8%]">
-                    <input
-                        type="search"
-                        className="w-full rounded-full border border-dark-300 bg-dark-200 py-2.5 pl-4 pr-10 text-sm text-white placeholder-text-secondary focus:border-accent-purple focus:outline-none focus:ring-1 focus:ring-accent-purple"
-                        placeholder="Search..."
-                    />
-                    <span className="absolute right-0 top-0 flex h-full w-10 items-center justify-center text-text-secondary">
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+                <Link to="/" className="flex items-center gap-2">
+                    <span className="text-2xl font-display font-bold bg-gradient-to-r from-accent-purple to-accent-blue bg-clip-text text-transparent">
+                        HorseMarket
                     </span>
-                </form>
+                </Link>
 
-                {/* Desktop Navigation */}
-                <div className="hidden lg:flex items-center">
-                    <nav className="flex items-center space-x-6 xl:space-x-8">
+                {/* Desktop Search & Nav */}
+                <div className="hidden lg:flex items-center gap-8">
+                    {/* Search Bar */}
+                    <div className="relative group">
+                        <input
+                            type="text"
+                            placeholder="Search items, collections..."
+                            className="w-64 bg-dark-100 border border-dark-200 rounded-full py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-accent-purple focus:ring-1 focus:ring-accent-purple transition-all placeholder:text-text-muted text-text-primary"
+                        />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted group-focus-within:text-accent-purple" />
+                    </div>
+
+                    <nav className="flex items-center gap-6">
                         {navLinks.map((link) => (
-                            <a
-                                key={link.label}
-                                href={link.href}
-                                className="text-sm font-medium text-text-secondary hover:text-white transition-colors"
+                            <Link
+                                key={link.name}
+                                to={link.path}
+                                className={`text-sm font-bold transition-colors hover:text-accent-purple ${location.pathname === link.path ? 'text-text-primary' : 'text-text-secondary'
+                                    }`}
                             >
-                                {link.label}
-                            </a>
+                                {link.name}
+                            </Link>
                         ))}
                     </nav>
                 </div>
 
-                {/* Right side actions */}
-                <div className="ml-auto flex items-center space-x-4 lg:ml-8 xl:ml-12">
-                    {/* Wallet Button (Visual Placeholder) */}
-                    <button className="hidden lg:flex items-center justify-center h-10 w-10 rounded-full hover:bg-dark-300 text-text-secondary hover:text-white transition-colors">
-                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                        </svg>
-                    </button>
+                {/* Actions */}
+                <div className="hidden lg:flex items-center gap-3">
+                    <Button variant="glass" size="icon" className="rounded-full bg-dark-100 text-text-primary hover:bg-dark-200 border-dark-200">
+                        <Wallet className="w-5 h-5" />
+                    </Button>
 
-                    {/* Auth/Profile */}
-                    <div className="relative">
-                        {user ? (
-                            <div className="relative">
-                                <button
-                                    onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                                    className="flex items-center space-x-2 rounded-full border border-dark-300 bg-dark-200 p-1 pr-4 hover:border-accent-purple transition-colors"
-                                >
-                                    <img
-                                        src={user.avatar || 'https://i.pravatar.cc/150?img=68'}
-                                        alt={user.username}
-                                        className="h-8 w-8 rounded-full"
-                                    />
-                                    <span className="hidden lg:block text-sm font-medium text-white">{user.username}</span>
-                                </button>
-
-                                {profileMenuOpen && (
-                                    <div className="absolute right-0 mt-2 w-48 rounded-xl border border-dark-300 bg-dark-200 py-1 shadow-xl">
-                                        <a href="#profile" className="block px-4 py-2 text-sm text-text-secondary hover:bg-dark-300 hover:text-white">
+                    {user ? (
+                        <div className="relative group">
+                            <Button variant="glass" size="icon" className="rounded-full bg-dark-100 text-text-primary hover:bg-dark-200 border-dark-200">
+                                {user.avatar ? (
+                                    <img src={user.avatar} alt="Profile" className="w-5 h-5 rounded-full object-cover" />
+                                ) : (
+                                    <User className="w-5 h-5" />
+                                )}
+                            </Button>
+                            {/* Dropdown Menu */}
+                            <div className="absolute right-0 top-full pt-2 w-48 hidden group-hover:block animate-fade-in z-50">
+                                <div className="bg-background border border-dark-200 rounded-xl shadow-xl overflow-hidden">
+                                    <div className="px-4 py-3 border-b border-dark-200">
+                                        <p className="text-sm font-semibold text-text-primary truncate">{user.username}</p>
+                                        <p className="text-xs text-text-secondary truncate">{user.email}</p>
+                                    </div>
+                                    <div className="py-1">
+                                        <Link to="/profile" className="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-dark-100 transition-colors">
                                             Profile
-                                        </a>
+                                        </Link>
+                                        <Link to="/admin" className="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-dark-100 transition-colors">
+                                            Admin
+                                        </Link>
                                         <button
-                                            onClick={handleLogout}
-                                            className="block w-full text-left px-4 py-2 text-sm text-text-secondary hover:bg-dark-300 hover:text-white"
+                                            onClick={logout}
+                                            className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-dark-100 transition-colors"
                                         >
                                             Logout
                                         </button>
                                     </div>
-                                )}
+                                </div>
                             </div>
-                        ) : (
-                            <div className="hidden lg:flex items-center space-x-3">
-                                <Button variant="outline" size="sm" onClick={() => { window.location.href = '/signup'; }}>
-                                    Sign Up
-                                </Button>
-                                <Button variant="gradient" size="sm" onClick={handleLoginClick}>
-                                    Login
-                                </Button>
-                            </div>
-                        )}
-                    </div>
+                        </div>
+                    ) : (
+                        <Link to="/login">
+                            <Button variant="primary" size="sm" className="rounded-full">
+                                Sign In
+                            </Button>
+                        </Link>
+                    )}
 
-                    {/* Mobile Menu Toggle */}
-                    <button
-                        className="lg:hidden h-10 w-10 flex items-center justify-center rounded-full text-text-secondary hover:bg-dark-300 hover:text-white transition-colors"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        aria-label="Toggle menu"
+                    <Button
+                        variant="glass"
+                        size="icon"
+                        className="rounded-full bg-dark-100 text-text-primary hover:bg-dark-200 border-dark-200"
+                        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     >
-                        {mobileMenuOpen ? (
-                            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        ) : (
-                            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                            </svg>
-                        )}
+                        {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    </Button>
+                </div>
+
+                {/* Mobile Menu Toggle */}
+                <div className="lg:hidden flex items-center gap-4">
+                    {!user && (
+                        <Link to="/login">
+                            <Button variant="primary" size="sm" className="rounded-full">
+                                Sign In
+                            </Button>
+                        </Link>
+                    )}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                        className="text-text-primary"
+                    >
+                        {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    </Button>
+                    <button
+                        className="text-text-primary p-2"
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    >
+                        {isMobileMenuOpen ? <X /> : <Menu />}
                     </button>
                 </div>
             </div>
 
-            {/* Mobile menu */}
-            <div
-                className={cn(
-                    'lg:hidden overflow-hidden transition-all duration-300 bg-dark-200 border-b border-dark-300',
-                    mobileMenuOpen ? 'max-h-screen' : 'max-h-0'
-                )}
-            >
-                <nav className="flex flex-col space-y-4 p-6">
-                    {navLinks.map((link) => (
-                        <a
-                            key={link.label}
-                            href={link.href}
-                            className="text-lg font-medium text-text-secondary hover:text-white transition-colors"
-                            onClick={() => setMobileMenuOpen(false)}
-                        >
-                            {link.label}
-                        </a>
-                    ))}
-                    <div className="pt-4 border-t border-dark-300">
-                        {!user && (
-                            <div className="space-y-3">
-                                <Button variant="gradient" size="md" className="w-full" onClick={handleLoginClick}>
-                                    Login
-                                </Button>
-                                <Button variant="outline" size="md" className="w-full" onClick={() => { window.location.href = '/signup'; setMobileMenuOpen(false); }}>
-                                    Sign Up
-                                </Button>
-                            </div>
-                        )}
+            {/* Mobile Menu */}
+            {isMobileMenuOpen && (
+                <div className="absolute top-full left-0 right-0 bg-background border-b border-dark-200 p-4 lg:hidden animate-slide-up shadow-xl">
+                    <div className="mb-4">
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            className="w-full bg-dark-100 border border-dark-200 rounded-xl py-3 px-4 text-text-primary"
+                        />
                     </div>
-                </nav>
-            </div>
+                    <nav className="flex flex-col gap-4">
+                        {navLinks.map((link) => (
+                            <Link
+                                key={link.name}
+                                to={link.path}
+                                className="text-lg font-bold text-text-secondary hover:text-text-primary"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                {link.name}
+                            </Link>
+                        ))}
+                        {user && (
+                            <>
+                                <div className="h-px bg-dark-200 my-2"></div>
+                                <Link to="/profile" className="text-lg font-bold text-text-secondary hover:text-text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+                                    Profile
+                                </Link>
+                                <Link to="/admin" className="text-lg font-bold text-text-secondary hover:text-text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+                                    Admin
+                                </Link>
+                                <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="text-lg font-bold text-left text-red-500 hover:text-red-400">
+                                    Logout
+                                </button>
+                            </>
+                        )}
+                    </nav>
+                    <div className="flex gap-4 mt-6 border-t border-dark-200 pt-6">
+                        <Button variant="primary" className="flex-1 rounded-full">Connect Wallet</Button>
+                    </div>
+                </div>
+            )}
         </header>
     );
-}
+};

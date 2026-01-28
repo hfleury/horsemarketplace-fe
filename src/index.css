@@ -8,27 +8,54 @@
 
 /* CSS Custom Properties */
 :root {
-  /* Colors */
-  --color-dark: #0D0D11;
-  --color-dark-100: #1A1A1F;
-  --color-dark-200: #24242C;
-  --color-dark-300: #2E2E38;
-
+  /* Common variables */
   --color-accent-purple: #8358FF;
   --color-accent-blue: #3B82F6;
   --color-accent-pink: #EC4899;
+
+  --spacing-section: 6rem;
+  --spacing-section-mobile: 3rem;
+  --transition-base: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* Light Theme (Default if not .dark) */
+:root {
+  --color-background: #ffffff;
+  --color-foreground: #0D0D11;
+  --color-card: #ffffff;
+  --color-card-foreground: #0D0D11;
+
+  --color-text-primary: #0D0D11;
+  --color-text-secondary: #52525B;
+  /* zinc-600 */
+  --color-text-muted: #71717A;
+
+  --color-border: #E4E4E7;
+  /* zinc-200 */
+  --color-dark-100: #F4F4F5;
+  /* zinc-100 (used for light backgrounds) */
+  --color-dark-200: #E4E4E7;
+  /* zinc-200 */
+  --color-dark-300: #D4D4D8;
+  /* zinc-300 */
+}
+
+/* Dark Theme */
+.dark {
+  --color-background: #0D0D11;
+  --color-foreground: #ffffff;
+  --color-card: #1A1A1F;
+  --color-card-foreground: #ffffff;
 
   --color-text-primary: #FFFFFF;
   --color-text-secondary: #A1A1AA;
   --color-text-muted: #71717A;
 
-  /* Spacing */
-  --spacing-section: 6rem;
-  --spacing-section-mobile: 3rem;
-
-  /* Transitions */
-  --transition-base: 0.3s ease;
-  --transition-slow: 0.5s ease;
+  --color-border: #2E2E38;
+  --color-dark-100: #1A1A1F;
+  --color-dark-200: #24242C;
+  --color-dark-300: #2E2E38;
 }
 
 /* Base styles */
@@ -38,7 +65,7 @@
   }
 
   body {
-    @apply bg-dark text-text-primary font-sans antialiased;
+    @apply bg-background text-text-primary font-sans antialiased transition-colors duration-300;
     margin: 0;
     min-height: 100vh;
   }
@@ -75,15 +102,16 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-dark-100;
+    background: var(--color-dark-100);
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-dark-400 rounded-full;
+    background: var(--color-dark-300);
+    border-radius: 9999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-accent-purple;
+    background: var(--color-accent-purple);
   }
 }
 
@@ -97,7 +125,23 @@
 
   /* Glass effect */
   .glass {
-    @apply bg-dark-100/50 backdrop-blur-md border border-dark-300/50;
+    background: rgba(var(--color-dark-100-rgb), 0.5);
+    /* Requires new variable or different approach */
+    @apply backdrop-blur-md border border-dark-300;
+    border-color: rgba(var(--color-dark-300-rgb), 0.5);
+  }
+
+  /* Dark mode specific glass */
+  .dark .glass {
+    background: rgba(26, 26, 31, 0.5);
+    /* dark-100 hex #1A1A1F converted to RGB */
+    @apply border-dark-300;
+  }
+
+  /* Light mode glass override */
+  :root .glass {
+    background: rgba(244, 244, 245, 0.5);
+    /* dark-100 hex #F4F4F5 converted to RGB */
   }
 
   /* Card hover effect */

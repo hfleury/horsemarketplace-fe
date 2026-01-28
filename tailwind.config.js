@@ -12,20 +12,30 @@ export default {
         display: ['DM Sans', 'Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
-        // Dark theme base colors
+        // Semantic colors that adapt to theme
+        background: 'var(--color-background)',
+        foreground: 'var(--color-foreground)',
+        border: 'var(--color-border)',
+
+        card: {
+          DEFAULT: 'var(--color-card)',
+          foreground: 'var(--color-card-foreground)',
+        },
+
+        // Dark/Neutral palette (adapts via CSS variables)
         dark: {
-          DEFAULT: '#0D0D11',
-          100: '#1A1A1F',
-          200: '#24242C',
-          300: '#2E2E38',
-          400: '#38384A',
+          DEFAULT: 'var(--color-background)', // Use background for default
+          100: 'var(--color-dark-100)',
+          200: 'var(--color-dark-200)',
+          300: 'var(--color-dark-300)',
+          400: '#38384A', // Keep these hardcoded if not variable-ized, or add vars if needed
           500: '#42425C',
         },
         // Accent colors with gradients
         accent: {
-          purple: '#8358FF',
-          blue: '#3B82F6',
-          pink: '#EC4899',
+          purple: 'var(--color-accent-purple)',
+          blue: 'var(--color-accent-blue)',
+          pink: 'var(--color-accent-pink)',
           cyan: '#06B6D4',
         },
         // Semantic colors
@@ -34,23 +44,32 @@ export default {
         error: '#EF4444',
         // Text colors
         text: {
-          primary: '#FFFFFF',
-          secondary: '#A1A1AA',
-          muted: '#71717A',
+          primary: 'var(--color-text-primary)',
+          secondary: 'var(--color-text-secondary)',
+          muted: 'var(--color-text-muted)',
         },
+
+        // Custom Admin Dashboard Colors
+        boxdark: '#24303F',
+        'boxdark-2': '#1A222C',
+        bodydark: '#AEB7C0',
+        bodydark1: '#DEE4EE',
+        bodydark2: '#8A99AF',
+        graydark: '#333A48',
+        'meta-4': '#313D4A',
       },
       backgroundImage: {
         'gradient-primary': 'linear-gradient(135deg, #8358FF 0%, #3B82F6 100%)',
         'gradient-secondary': 'linear-gradient(135deg, #EC4899 0%, #8358FF 100%)',
         'gradient-accent': 'linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%)',
-        'gradient-dark': 'linear-gradient(180deg, #0D0D11 0%, #1A1A1F 100%)',
+        'gradient-dark': 'linear-gradient(180deg, var(--color-background) 0%, var(--color-dark-100) 100%)',
       },
       boxShadow: {
         'glow-sm': '0 0 10px rgba(131, 88, 255, 0.3)',
         'glow-md': '0 0 20px rgba(131, 88, 255, 0.4)',
         'glow-lg': '0 0 30px rgba(131, 88, 255, 0.5)',
-        'card': '0 4px 24px rgba(0, 0, 0, 0.25)',
-        'card-hover': '0 8px 32px rgba(131, 88, 255, 0.3)',
+        'card': '0 4px 24px rgba(0, 0, 0, 0.1)',
+        'card-hover': '0 8px 32px rgba(131, 88, 255, 0.2)',
       },
       borderRadius: {
         '2xl': '16px',

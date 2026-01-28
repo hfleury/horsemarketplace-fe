@@ -41,6 +41,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await authApi.login({ username, password });
       const { token: newToken, user: newUser } = data.data;
 
+      // Ensure role is present (backend should send it, but fallback if missing)
+      if (!newUser.role) newUser.role = 'user';
+
       setToken(newToken);
       setUser(newUser);
 
