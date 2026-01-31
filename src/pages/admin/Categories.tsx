@@ -20,6 +20,7 @@ interface CreateCategoryRequest {
     name: string;
     picture_url?: string;
     parent_id?: string;
+    file?: File | null;
 }
 
 interface ApiResponse<T> {
@@ -27,6 +28,11 @@ interface ApiResponse<T> {
     message?: string;
     data?: T;
     error?: string;
+}
+
+interface MediaResponse {
+    id: string;
+    url: string;
 }
 
 export const Categories = () => {
@@ -39,7 +45,8 @@ export const Categories = () => {
     const [formData, setFormData] = useState<CreateCategoryRequest>({
         name: '',
         picture_url: '',
-        parent_id: ''
+        parent_id: '',
+        file: null
     });
     const [submitting, setSubmitting] = useState(false);
 
@@ -75,8 +82,15 @@ export const Categories = () => {
     }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, type } = e.target;
+        if (type === 'file') {
+            const files = (e.target as HTMLInputElement).files;
+            if (files && files.length > 0) {
+                setFormData(prev => ({ ...prev, file: files[0] }));
+            }
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -85,9 +99,27 @@ export const Categories = () => {
 
         setSubmitting(true);
         try {
+            let pictureUrl = formData.picture_url;
+
+            // Upload file if exists
+            if (formData.file) {
+                const uploadData = new FormData();
+                uploadData.append('file', formData.file);
+                const uploadResponse = await apiFetch<ApiResponse<MediaResponse>>('/media/upload', {
+                    method: 'POST',
+                    body: uploadData
+                });
+                if (uploadResponse.status === 'success' && uploadResponse.data) {
+                    pictureUrl = uploadResponse.data.url;
+                } else {
+                    throw new Error(uploadResponse.message || 'Failed to upload image');
+                }
+            }
+
             const payload = {
-                ...formData,
-                parent_id: formData.parent_id === '' ? null : formData.parent_id
+                name: formData.name,
+                parent_id: formData.parent_id === '' ? null : formData.parent_id,
+                picture_url: pictureUrl
             };
 
             const response = await apiFetch<ApiResponse<Category>>('/categories', {
@@ -97,14 +129,14 @@ export const Categories = () => {
 
             if (response.status === 'success') {
                 await fetchCategories();
-                setFormData({ name: '', picture_url: '', parent_id: '' });
+                setFormData({ name: '', picture_url: '', parent_id: '', file: null });
                 setShowForm(false);
             } else {
                 alert(response.message || 'Failed to create category');
             }
         } catch (err) {
             console.error(err);
-            alert('Failed to create category');
+            alert(err instanceof Error ? err.message : 'Failed to create category');
         } finally {
             setSubmitting(false);
         }
@@ -199,6 +231,18 @@ export const Categories = () => {
                                 onChange={handleInputChange}
                                 className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                                 placeholder="https://example.com/image.jpg"
+                            />
+                        </div>
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-black dark:text-white">
+                                Upload Image (Overrides URL)
+                            </label>
+                            <input
+                                type="file"
+                                name="file"
+                                onChange={handleInputChange}
+                                accept="image/*"
+                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary file:mr-5 file:py-1 file:px-3 file:border-[1px] file:text-xs file:font-medium file:bg-gray-100 dark:file:bg-boxdark file:text-black dark:file:text-white file:rounded-md"
                             />
                         </div>
                         <div className="flex justify-end gap-3 mt-2">

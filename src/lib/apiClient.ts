@@ -10,7 +10,7 @@ export async function apiFetch<T>(
 
   const config: RequestInit = {
     headers: {
-      'Content-Type': 'application/json',
+      ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
       // TODO: Add auth token if available
       ...(localStorage.getItem('authToken') && {
         Authorization: `Bearer ${localStorage.getItem('authToken')}`,
