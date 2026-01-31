@@ -8,6 +8,7 @@ import { AdminLayout } from './components/admin/AdminLayout';
 import { Users } from './pages/admin/Users';
 import { Categories } from './pages/admin/Categories';
 import { AuthProvider } from './context/AuthContext';
+import CreateProduct from './pages/CreateProduct';
 
 function App() {
   return (
@@ -21,6 +22,12 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="*" element={<div className="container-custom py-20 text-center">Page Not Found</div>} />
+            <Route path="*" element={<div className="container-custom py-20 text-center">Page Not Found</div>} />
+          </Route>
+
+          {/* Protected General Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['user', 'admin']} />}>
+            <Route path="/create-ad" element={<CreateProduct />} />
           </Route>
 
           {/* Protected Admin Routes */}
