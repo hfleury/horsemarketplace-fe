@@ -3,6 +3,8 @@ import { Layout } from './components/layout/Layout';
 import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { Users } from './pages/admin/Users';
@@ -21,6 +23,8 @@ function App() {
             <Route path="/home-6" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<div className="container-custom py-20 text-center">Page Not Found</div>} />
             <Route path="*" element={<div className="container-custom py-20 text-center">Page Not Found</div>} />
           </Route>
