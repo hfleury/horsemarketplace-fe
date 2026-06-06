@@ -1,19 +1,23 @@
-export enum ProductType {
-    Horse = 'horse',
-    Vehicle = 'vehicle',
-    Equipment = 'equipment',
-    Service = 'service',
-    Property = 'property'
-}
+export const ProductType = {
+    Horse: 'horse',
+    Vehicle: 'vehicle',
+    Equipment: 'equipment',
+    Service: 'service',
+    Property: 'property'
+} as const;
 
-export enum ProductStatus {
-    Draft = 'draft',
-    Published = 'published',
-    PendingApproval = 'pending_approval',
-    Sold = 'sold',
-    Archived = 'archived',
-    Deleted = 'deleted'
-}
+export type ProductTypeKind = typeof ProductType[keyof typeof ProductType];
+
+export const ProductStatus = {
+    Draft: 'draft',
+    Published: 'published',
+    PendingApproval: 'pending_approval',
+    Sold: 'sold',
+    Archived: 'archived',
+    Deleted: 'deleted'
+} as const;
+
+export type ProductStatusKind = typeof ProductStatus[keyof typeof ProductStatus];
 
 export interface ProductMedia {
     id: string;
@@ -57,8 +61,8 @@ export interface Product {
     id: string;
     user_id: string;
     category_id?: string;
-    type: ProductType;
-    status: ProductStatus;
+    type: ProductTypeKind;
+    status: ProductStatusKind;
     title: string;
     price_sek?: number;
     description?: string;
@@ -80,8 +84,8 @@ export interface Product {
 
 export interface CreateProductRequest {
     title: string;
-    type: ProductType;
-    status: ProductStatus;
+    type: ProductTypeKind;
+    status: ProductStatusKind;
     price_sek: number;
     description: string;
     city: string;

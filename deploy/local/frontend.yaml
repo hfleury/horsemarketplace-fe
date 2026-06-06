@@ -16,7 +16,7 @@ spec:
       containers:
       - name: frontend
         image: hfcardoso/frontend:latest
-        imagePullPolicy: Never
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
         resources:
@@ -37,4 +37,4 @@ spec:
       port: 80
       targetPort: 80
       nodePort: 30080
-  type: NodePort
+  type: LoadBalancer

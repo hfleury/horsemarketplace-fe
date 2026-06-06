@@ -95,9 +95,11 @@ export const Header = () => {
                                         <Link to="/profile" className="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-dark-100 transition-colors">
                                             Profile
                                         </Link>
-                                        <Link to="/admin" className="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-dark-100 transition-colors">
-                                            Admin
-                                        </Link>
+                                        {user.role === 'admin' && (
+                                            <Link to="/admin" className="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-dark-100 transition-colors">
+                                                Admin
+                                            </Link>
+                                        )}
                                         <button
                                             onClick={logout}
                                             className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-dark-100 transition-colors"
@@ -179,9 +181,11 @@ export const Header = () => {
                                 <Link to="/profile" className="text-lg font-bold text-text-secondary hover:text-text-primary" onClick={() => setIsMobileMenuOpen(false)}>
                                     Profile
                                 </Link>
-                                <Link to="/admin" className="text-lg font-bold text-text-secondary hover:text-text-primary" onClick={() => setIsMobileMenuOpen(false)}>
-                                    Admin
-                                </Link>
+                                {user.role === 'admin' && (
+                                    <Link to="/admin" className="text-lg font-bold text-text-secondary hover:text-text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+                                        Admin
+                                    </Link>
+                                )}
                                 <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="text-lg font-bold text-left text-red-500 hover:text-red-400">
                                     Logout
                                 </button>

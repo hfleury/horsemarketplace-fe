@@ -26,4 +26,16 @@ export const authApi = {
       body: JSON.stringify({ email }),
     });
   },
+  forgotPassword(email: string) {
+    return apiFetch<{ status: 'success' | 'error'; message: string }>('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+  resetPassword(payload: { token: string; password: string }) {
+    return apiFetch<{ status: 'success' | 'error'; message: string }>('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
 };
