@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { ProductType, ProductStatus } from '../../types/product';
 import type { CreateProductRequest } from '../../types/product';
-import { createProduct } from '../../api/products';
+import { productsApi } from '../../api/products';
 
 import Button from '../../components/ui/Button';
 import FormTextField from '../../components/ui/FormTextField';
@@ -86,7 +86,7 @@ const ProductForm = () => {
         setIsSubmitting(true);
         setSubmitError(null);
         try {
-            await createProduct(data);
+            await productsApi.createProduct(data);
             // Redirect to listings or dashboard?
             navigate('/');
         } catch (err) {
