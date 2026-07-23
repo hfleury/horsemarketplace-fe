@@ -1,26 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User, Shield, Ban } from 'lucide-react';
-import { apiFetch } from '../../lib/apiClient';
-
-interface BackendUser {
-    id: string;
-    username: string;
-    email: string;
-    role: string;
-    is_active: boolean;
-    created_at: string;
-}
-
-interface ToggleUserStatusRequest {
-    is_active: boolean;
-}
-
-interface ApiResponse<T> {
-    status: string;
-    message?: string;
-    data?: T;
-    error?: string;
-}
+import { usersApi } from '../../api/users';
+import type { BackendUser } from '../../types/users';
 
 export const Users = () => {
     const [users, setUsers] = useState<BackendUser[]>([]);
@@ -30,7 +11,7 @@ export const Users = () => {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const response = await apiFetch<ApiResponse<BackendUser[]>>('/admin/users');
+            const response = await usersApi.list();
             if (response.status === 'success' && response.data) {
                 setUsers(response.data);
             } else {
@@ -50,10 +31,7 @@ export const Users = () => {
     const handleBlockUser = async (user: BackendUser) => {
         const newStatus = !user.is_active;
         try {
-            const response = await apiFetch<ApiResponse<null>>(`/admin/users/${user.id}/block`, {
-                method: 'POST',
-                body: JSON.stringify({ is_active: newStatus } as ToggleUserStatusRequest),
-            });
+            const response = await usersApi.setBlockedStatus(user.id, newStatus);
 
             if (response.status === 'success') {
                 // Update local state to reflect change

@@ -1,38 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Tag, Plus, Trash2, Folder, ChevronRight, ImageIcon } from 'lucide-react';
-import { apiFetch } from '../../lib/apiClient';
-
-interface Category {
-    id: string;
-    name: string;
-    picture_url?: string;
-    parent_id?: string;
-    subcategories?: Category[];
-    created_at?: string;
-}
+import { categoriesApi } from '../../api/categories';
+import type { Category, CreateCategoryRequest } from '../../types/categories';
 
 interface FlattenedCategory extends Category {
     depth: number;
     parentName: string | null;
-}
-
-interface CreateCategoryRequest {
-    name: string;
-    picture_url?: string;
-    parent_id?: string;
-    file?: File | null;
-}
-
-interface ApiResponse<T> {
-    status: string;
-    message?: string;
-    data?: T;
-    error?: string;
-}
-
-interface MediaResponse {
-    id: string;
-    url: string;
 }
 
 export const Categories = () => {
@@ -64,7 +37,7 @@ export const Categories = () => {
     const fetchCategories = async () => {
         try {
             setLoading(true);
-            const response = await apiFetch<ApiResponse<Category[]>>('/categories');
+            const response = await categoriesApi.list();
             if (response.status === 'success' && response.data) {
                 setFlatCategories(flattenCategories(response.data));
             } else {
@@ -105,10 +78,7 @@ export const Categories = () => {
             if (formData.file) {
                 const uploadData = new FormData();
                 uploadData.append('file', formData.file);
-                const uploadResponse = await apiFetch<ApiResponse<MediaResponse>>('/media/upload', {
-                    method: 'POST',
-                    body: uploadData
-                });
+                const uploadResponse = await categoriesApi.uploadMedia(uploadData);
                 if (uploadResponse.status === 'success' && uploadResponse.data) {
                     pictureUrl = uploadResponse.data.url;
                 } else {
@@ -122,10 +92,7 @@ export const Categories = () => {
                 picture_url: pictureUrl
             };
 
-            const response = await apiFetch<ApiResponse<Category>>('/categories', {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
+            const response = await categoriesApi.create(payload);
 
             if (response.status === 'success') {
                 await fetchCategories();
@@ -146,9 +113,7 @@ export const Categories = () => {
         if (!confirm('Are you sure? This will delete the category and potential subcategories.')) return;
 
         try {
-            const response = await apiFetch<ApiResponse<null>>(`/categories/${id}`, {
-                method: 'DELETE'
-            });
+            const response = await categoriesApi.delete(id);
             if (response.status === 'success') {
                 fetchCategories();
             } else {
