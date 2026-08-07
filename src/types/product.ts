@@ -82,6 +82,13 @@ export interface Product {
     equipment?: EquipmentSpecifics;
 }
 
+export interface PaginatedProducts {
+    items: Product[];
+    total: number;
+    page: number;
+    limit: number;
+}
+
 export interface CreateProductRequest {
     title: string;
     type: ProductTypeKind;
