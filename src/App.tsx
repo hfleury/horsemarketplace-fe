@@ -11,6 +11,7 @@ import { Users } from './pages/admin/Users';
 import { Categories } from './pages/admin/Categories';
 import { AuthProvider } from './context/AuthContext';
 import CreateProduct from './pages/CreateProduct';
+import { Listings } from './pages/Listings';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route element={<Layout><Outlet /></Layout>}>
             <Route path="/" element={<Home />} />
             <Route path="/home-6" element={<Home />} />
+            <Route path="/listings" element={<Listings />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
