@@ -5,8 +5,10 @@ import { categoriesApi } from '../api/categories';
 import { geocodingApi } from '../api/geocoding';
 import { getCurrentPosition } from '../lib/geolocation';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
+import { horseAttributesApi } from '../api/horseAttributesApi';
 import type { Product } from '../types/product';
 import type { Category } from '../types/categories';
+import type { HorseAttributeOption } from '../types/horseAttributes';
 import { ListingCard } from '../components/products/ListingCard';
 import { SectionHeader } from '../components/common/SectionHeader';
 import Button from '../components/ui/Button';
@@ -38,6 +40,21 @@ export const Listings = () => {
     const [page, setPage] = useState(1);
     const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
     const [categories, setCategories] = useState<FlatCategory[]>([]);
+
+    const [breed, setBreed] = useState<string | undefined>(undefined);
+    const [gender, setGender] = useState<string | undefined>(undefined);
+    const [discipline, setDiscipline] = useState<string | undefined>(undefined);
+    const [minAge, setMinAge] = useState<number | undefined>(undefined);
+    const [maxAge, setMaxAge] = useState<number | undefined>(undefined);
+    const [minHeight, setMinHeight] = useState<number | undefined>(undefined);
+    const [maxHeight, setMaxHeight] = useState<number | undefined>(undefined);
+    const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
+    const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
+
+    const [breedOptions, setBreedOptions] = useState<HorseAttributeOption[]>([]);
+    const [genderOptions, setGenderOptions] = useState<HorseAttributeOption[]>([]);
+    const [disciplineOptions, setDisciplineOptions] = useState<HorseAttributeOption[]>([]);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +75,36 @@ export const Listings = () => {
             .catch(() => {
                 // Category filter is a progressive enhancement; ignore fetch failures here.
             });
+        horseAttributesApi
+            .list('breed')
+            .then((response) => {
+                if (response.status === 'success' && response.data) {
+                    setBreedOptions(response.data);
+                }
+            })
+            .catch(() => {
+                // Attribute filters are a progressive enhancement; ignore fetch failures here.
+            });
+        horseAttributesApi
+            .list('gender')
+            .then((response) => {
+                if (response.status === 'success' && response.data) {
+                    setGenderOptions(response.data);
+                }
+            })
+            .catch(() => {
+                // Attribute filters are a progressive enhancement; ignore fetch failures here.
+            });
+        horseAttributesApi
+            .list('discipline')
+            .then((response) => {
+                if (response.status === 'success' && response.data) {
+                    setDisciplineOptions(response.data);
+                }
+            })
+            .catch(() => {
+                // Attribute filters are a progressive enhancement; ignore fetch failures here.
+            });
     }, []);
 
     useEffect(() => {
@@ -72,6 +119,15 @@ export const Listings = () => {
                 const hasLocationFilter = originCoords !== undefined && radiusKm !== undefined;
                 const response = await productsApi.list({
                     categoryId,
+                    breed,
+                    gender,
+                    discipline,
+                    minAge,
+                    maxAge,
+                    minHeight,
+                    maxHeight,
+                    minPrice,
+                    maxPrice,
                     page,
                     limit: LIMIT,
                     q: debouncedKeyword,
@@ -95,12 +151,48 @@ export const Listings = () => {
         };
 
         fetchProducts();
-    }, [categoryId, page, originCoords, radiusKm, debouncedKeyword]);
+    }, [
+        categoryId,
+        breed,
+        gender,
+        discipline,
+        minAge,
+        maxAge,
+        minHeight,
+        maxHeight,
+        minPrice,
+        maxPrice,
+        page,
+        originCoords,
+        radiusKm,
+        debouncedKeyword,
+    ]);
 
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setCategoryId(e.target.value === '' ? undefined : e.target.value);
         setPage(1);
     };
+
+    const handleBreedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setBreed(e.target.value === '' ? undefined : e.target.value);
+        setPage(1);
+    };
+
+    const handleGenderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setGender(e.target.value === '' ? undefined : e.target.value);
+        setPage(1);
+    };
+
+    const handleDisciplineChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setDiscipline(e.target.value === '' ? undefined : e.target.value);
+        setPage(1);
+    };
+
+    const handleNumericFilterChange = (setter: (value: number | undefined) => void) =>
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setter(e.target.value === '' ? undefined : Number(e.target.value));
+            setPage(1);
+        };
 
     const handleKeywordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setKeyword(e.target.value);
@@ -152,7 +244,7 @@ export const Listings = () => {
             <div className="container-custom">
                 <SectionHeader title="Browse Listings" subtitle="Find horses, vehicles, and equipment for sale" />
 
-                <div className="mb-8 flex justify-center">
+                <div className="mb-8 flex flex-wrap justify-center gap-4">
                     <select
                         aria-label="Category"
                         value={categoryId ?? ''}
@@ -166,6 +258,104 @@ export const Listings = () => {
                             </option>
                         ))}
                     </select>
+
+                    <select
+                        value={breed ?? ''}
+                        onChange={handleBreedChange}
+                        className="w-full max-w-xs rounded-xl border border-dark-200 bg-white dark:bg-card px-4 py-2 text-text-primary"
+                    >
+                        <option value="">All Breeds</option>
+                        {breedOptions.map((opt) => (
+                            <option key={opt.id} value={opt.value}>
+                                {opt.value}
+                            </option>
+                        ))}
+                    </select>
+
+                    <select
+                        value={gender ?? ''}
+                        onChange={handleGenderChange}
+                        className="w-full max-w-xs rounded-xl border border-dark-200 bg-white dark:bg-card px-4 py-2 text-text-primary"
+                    >
+                        <option value="">All Genders</option>
+                        {genderOptions.map((opt) => (
+                            <option key={opt.id} value={opt.value}>
+                                {opt.value}
+                            </option>
+                        ))}
+                    </select>
+
+                    <select
+                        value={discipline ?? ''}
+                        onChange={handleDisciplineChange}
+                        className="w-full max-w-xs rounded-xl border border-dark-200 bg-white dark:bg-card px-4 py-2 text-text-primary"
+                    >
+                        <option value="">All Disciplines</option>
+                        {disciplineOptions.map((opt) => (
+                            <option key={opt.id} value={opt.value}>
+                                {opt.value}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="mb-8 flex flex-wrap justify-center gap-6">
+                    <div className="flex items-center gap-2">
+                        <label className="text-sm text-text-secondary">Age</label>
+                        <input
+                            type="number"
+                            placeholder="Min"
+                            value={minAge ?? ''}
+                            onChange={handleNumericFilterChange(setMinAge)}
+                            className="w-24 rounded-xl border border-dark-200 bg-white dark:bg-card px-3 py-2 text-text-primary"
+                        />
+                        <span className="text-text-secondary">–</span>
+                        <input
+                            type="number"
+                            placeholder="Max"
+                            value={maxAge ?? ''}
+                            onChange={handleNumericFilterChange(setMaxAge)}
+                            className="w-24 rounded-xl border border-dark-200 bg-white dark:bg-card px-3 py-2 text-text-primary"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <label className="text-sm text-text-secondary">Height (cm)</label>
+                        <input
+                            type="number"
+                            placeholder="Min"
+                            value={minHeight ?? ''}
+                            onChange={handleNumericFilterChange(setMinHeight)}
+                            className="w-24 rounded-xl border border-dark-200 bg-white dark:bg-card px-3 py-2 text-text-primary"
+                        />
+                        <span className="text-text-secondary">–</span>
+                        <input
+                            type="number"
+                            placeholder="Max"
+                            value={maxHeight ?? ''}
+                            onChange={handleNumericFilterChange(setMaxHeight)}
+                            className="w-24 rounded-xl border border-dark-200 bg-white dark:bg-card px-3 py-2 text-text-primary"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <label className="text-sm text-text-secondary">Price (SEK)</label>
+                        <input
+                            type="number"
+                            placeholder="Min"
+                            value={minPrice ?? ''}
+                            onChange={handleNumericFilterChange(setMinPrice)}
+                            className="w-28 rounded-xl border border-dark-200 bg-white dark:bg-card px-3 py-2 text-text-primary"
+                        />
+                        <span className="text-text-secondary">–</span>
+                        <input
+                            type="number"
+                            placeholder="Max"
+                            value={maxPrice ?? ''}
+                            onChange={handleNumericFilterChange(setMaxPrice)}
+                            className="w-28 rounded-xl border border-dark-200 bg-white dark:bg-card px-3 py-2 text-text-primary"
+                        />
+                    </div>
                 </div>
 
                 <div className="mb-8 flex flex-wrap items-center justify-center gap-3">

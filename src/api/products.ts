@@ -15,6 +15,15 @@ export const productsApi = {
   list(
     params: {
       categoryId?: string;
+      breed?: string;
+      gender?: string;
+      discipline?: string;
+      minAge?: number;
+      maxAge?: number;
+      minHeight?: number;
+      maxHeight?: number;
+      minPrice?: number;
+      maxPrice?: number;
       page?: number;
       limit?: number;
       lat?: number;
@@ -25,6 +34,15 @@ export const productsApi = {
   ) {
     const qs = new URLSearchParams();
     if (params.categoryId) qs.set('category_id', params.categoryId);
+    if (params.breed) qs.set('breed', params.breed);
+    if (params.gender) qs.set('gender', params.gender);
+    if (params.discipline) qs.set('discipline', params.discipline);
+    if (params.minAge !== undefined) qs.set('min_age', String(params.minAge));
+    if (params.maxAge !== undefined) qs.set('max_age', String(params.maxAge));
+    if (params.minHeight !== undefined) qs.set('min_height', String(params.minHeight));
+    if (params.maxHeight !== undefined) qs.set('max_height', String(params.maxHeight));
+    if (params.minPrice !== undefined) qs.set('min_price', String(params.minPrice));
+    if (params.maxPrice !== undefined) qs.set('max_price', String(params.maxPrice));
     if (params.page) qs.set('page', String(params.page));
     if (params.limit) qs.set('limit', String(params.limit));
     if (params.lat !== undefined) qs.set('lat', String(params.lat));

@@ -37,6 +37,7 @@ const productSchema = z.object({
         color: z.string().optional(),
         dressage_level: z.string().optional(),
         jump_level: z.string().optional(),
+        orientation: z.string().optional(),
     }).optional(),
     vehicle: z.object({
         make: z.string().optional(),

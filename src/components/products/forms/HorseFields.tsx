@@ -1,9 +1,49 @@
+import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import FormTextField from '../../ui/FormTextField';
 import type { CreateProductRequest } from '../../../types/product';
+import { horseAttributesApi } from '../../../api/horseAttributesApi';
+import type { HorseAttributeOption } from '../../../types/horseAttributes';
 
 const HorseFields = () => {
     const { register, formState: { errors } } = useFormContext<CreateProductRequest>();
+
+    const [breedOptions, setBreedOptions] = useState<HorseAttributeOption[]>([]);
+    const [disciplineOptions, setDisciplineOptions] = useState<HorseAttributeOption[]>([]);
+    const [genderOptions, setGenderOptions] = useState<HorseAttributeOption[]>([]);
+
+    useEffect(() => {
+        horseAttributesApi
+            .list('breed')
+            .then((response) => {
+                if (response.status === 'success' && response.data) {
+                    setBreedOptions(response.data);
+                }
+            })
+            .catch(() => {
+                // Attribute dropdowns are a progressive enhancement; ignore fetch failures here.
+            });
+        horseAttributesApi
+            .list('discipline')
+            .then((response) => {
+                if (response.status === 'success' && response.data) {
+                    setDisciplineOptions(response.data);
+                }
+            })
+            .catch(() => {
+                // Attribute dropdowns are a progressive enhancement; ignore fetch failures here.
+            });
+        horseAttributesApi
+            .list('gender')
+            .then((response) => {
+                if (response.status === 'success' && response.data) {
+                    setGenderOptions(response.data);
+                }
+            })
+            .catch(() => {
+                // Attribute dropdowns are a progressive enhancement; ignore fetch failures here.
+            });
+    }, []);
 
     return (
         <div className="space-y-4">
@@ -16,13 +56,20 @@ const HorseFields = () => {
                     helperText={errors.horse?.name?.message}
                     {...register('horse.name')}
                 />
-                <FormTextField
-                    label="Breed"
-                    type="text"
-                    error={!!errors.horse?.breed?.message}
-                    helperText={errors.horse?.breed?.message}
-                    {...register('horse.breed')}
-                />
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Breed</label>
+                    <select
+                        {...register('horse.breed')}
+                        className="w-full px-3 py-2 border border-input-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                    >
+                        <option value="">Select breed</option>
+                        {breedOptions.map((opt) => (
+                            <option key={opt.id} value={opt.value}>
+                                {opt.value}
+                            </option>
+                        ))}
+                    </select>
+                </div>
                 <FormTextField
                     label="Age"
                     type="number"
@@ -37,13 +84,20 @@ const HorseFields = () => {
                     helperText={errors.horse?.year_of_birth?.message}
                     {...register('horse.year_of_birth', { valueAsNumber: true })}
                 />
-                <FormTextField
-                    label="Gender"
-                    type="text" // Could be select
-                    error={!!errors.horse?.gender?.message}
-                    helperText={errors.horse?.gender?.message}
-                    {...register('horse.gender')}
-                />
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                    <select
+                        {...register('horse.gender')}
+                        className="w-full px-3 py-2 border border-input-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                    >
+                        <option value="">Select gender</option>
+                        {genderOptions.map((opt) => (
+                            <option key={opt.id} value={opt.value}>
+                                {opt.value}
+                            </option>
+                        ))}
+                    </select>
+                </div>
                 <FormTextField
                     label="Height (cm)"
                     type="number"
@@ -72,6 +126,20 @@ const HorseFields = () => {
                     helperText={errors.horse?.jump_level?.message}
                     {...register('horse.jump_level')}
                 />
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Discipline</label>
+                    <select
+                        {...register('horse.orientation')}
+                        className="w-full px-3 py-2 border border-input-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                    >
+                        <option value="">Select discipline</option>
+                        {disciplineOptions.map((opt) => (
+                            <option key={opt.id} value={opt.value}>
+                                {opt.value}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             {/* Pedigree could be added here as a complex nested form later */}
