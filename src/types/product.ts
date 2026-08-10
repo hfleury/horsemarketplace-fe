@@ -68,6 +68,8 @@ export interface Product {
     description?: string;
     city?: string;
     area?: string;
+    latitude?: number;
+    longitude?: number;
     transaction_type?: string;
     views_count: number;
     created_at: string;
@@ -97,6 +99,8 @@ export interface CreateProductRequest {
     description: string;
     city: string;
     area?: string;
+    latitude?: number;
+    longitude?: number;
     transaction_type: string;
 
     // Specifics flattened or nested? Backend expects nested

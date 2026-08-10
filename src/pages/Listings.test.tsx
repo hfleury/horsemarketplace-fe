@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { Listings } from './Listings';
 import { productsApi } from '../api/products';
 import { categoriesApi } from '../api/categories';
+import { geocodingApi } from '../api/geocoding';
 import { ProductStatus, ProductType, type Product } from '../types/product';
 
 vi.mock('../api/products', () => ({
@@ -12,6 +13,10 @@ vi.mock('../api/products', () => ({
 
 vi.mock('../api/categories', () => ({
     categoriesApi: { list: vi.fn() },
+}));
+
+vi.mock('../api/geocoding', () => ({
+    geocodingApi: { resolve: vi.fn() },
 }));
 
 function makeProduct(overrides: Partial<Product> = {}): Product {
@@ -33,6 +38,7 @@ describe('Listings', () => {
     beforeEach(() => {
         vi.mocked(productsApi.list).mockReset();
         vi.mocked(categoriesApi.list).mockReset();
+        vi.mocked(geocodingApi.resolve).mockReset();
         vi.mocked(categoriesApi.list).mockResolvedValue({
             status: 'success',
             data: [{ id: 'cat-1', name: 'Horses' }],
@@ -72,7 +78,7 @@ describe('Listings', () => {
 
         await waitFor(() => expect(productsApi.list).toHaveBeenCalledWith({ categoryId: undefined, page: 1, limit: 20 }));
 
-        fireEvent.change(screen.getByRole('combobox'), { target: { value: 'cat-1' } });
+        fireEvent.change(screen.getByRole('combobox', { name: 'Category' }), { target: { value: 'cat-1' } });
 
         await waitFor(() =>
             expect(productsApi.list).toHaveBeenCalledWith({ categoryId: 'cat-1', page: 1, limit: 20 })
@@ -135,5 +141,42 @@ describe('Listings', () => {
         await waitFor(() => {
             expect(screen.getByText(/no listings found/i)).toBeInTheDocument();
         });
+    });
+
+    it('re-fetches with resolved coordinates and radius after typing a location and picking a radius', async () => {
+        vi.mocked(productsApi.list).mockResolvedValue({
+            status: 'success',
+            data: { items: [makeProduct()], total: 1, page: 1, limit: 20 },
+        });
+        vi.mocked(geocodingApi.resolve).mockResolvedValue({
+            status: 'success',
+            data: { lat: 59.3293, lng: 18.0686 },
+        });
+
+        render(
+            <MemoryRouter>
+                <Listings />
+            </MemoryRouter>
+        );
+
+        await waitFor(() => expect(screen.getByText('Test Horse')).toBeInTheDocument());
+
+        fireEvent.change(screen.getByLabelText('Location'), { target: { value: 'Stockholm' } });
+        fireEvent.blur(screen.getByLabelText('Location'));
+
+        await waitFor(() => expect(geocodingApi.resolve).toHaveBeenCalledWith('Stockholm'));
+
+        fireEvent.change(screen.getByRole('combobox', { name: 'Radius' }), { target: { value: '50' } });
+
+        await waitFor(() =>
+            expect(productsApi.list).toHaveBeenCalledWith({
+                categoryId: undefined,
+                page: 1,
+                limit: 20,
+                lat: 59.3293,
+                lng: 18.0686,
+                radiusKm: 50,
+            })
+        );
     });
 });
