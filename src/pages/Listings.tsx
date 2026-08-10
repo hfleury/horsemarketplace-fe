@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { productsApi } from '../api/products';
 import { categoriesApi } from '../api/categories';
+import { geocodingApi } from '../api/geocoding';
+import { getCurrentPosition } from '../lib/geolocation';
 import type { Product } from '../types/product';
 import type { Category } from '../types/categories';
 import { ListingCard } from '../components/products/ListingCard';
@@ -8,6 +10,7 @@ import { SectionHeader } from '../components/common/SectionHeader';
 import Button from '../components/ui/Button';
 
 const LIMIT = 20;
+const RADIUS_OPTIONS_KM = [10, 25, 50, 100, 250, 500];
 
 interface FlatCategory extends Category {
     depth: number;
@@ -32,6 +35,12 @@ export const Listings = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const [locationQuery, setLocationQuery] = useState('');
+    const [originCoords, setOriginCoords] = useState<{ lat: number; lng: number } | undefined>(undefined);
+    const [radiusKm, setRadiusKm] = useState<number | undefined>(undefined);
+    const [locationLoading, setLocationLoading] = useState(false);
+    const [locationWarning, setLocationWarning] = useState<string | null>(null);
+
     useEffect(() => {
         categoriesApi
             .list()
@@ -50,7 +59,17 @@ export const Listings = () => {
             try {
                 setLoading(true);
                 setError(null);
-                const response = await productsApi.list({ categoryId, page, limit: LIMIT });
+                const hasLocationFilter = originCoords !== undefined && radiusKm !== undefined;
+                const response = await productsApi.list({
+                    categoryId,
+                    page,
+                    limit: LIMIT,
+                    ...(hasLocationFilter && {
+                        lat: originCoords.lat,
+                        lng: originCoords.lng,
+                        radiusKm,
+                    }),
+                });
                 if (response.status === 'success' && response.data) {
                     setProducts(response.data.items ?? []);
                     setTotal(response.data.total);
@@ -65,10 +84,47 @@ export const Listings = () => {
         };
 
         fetchProducts();
-    }, [categoryId, page]);
+    }, [categoryId, page, originCoords, radiusKm]);
 
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setCategoryId(e.target.value === '' ? undefined : e.target.value);
+        setPage(1);
+    };
+
+    const handleLocationBlur = async () => {
+        if (!locationQuery.trim()) return;
+        setLocationLoading(true);
+        setLocationWarning(null);
+        try {
+            const response = await geocodingApi.resolve(locationQuery.trim());
+            if (response.status === 'success' && response.data) {
+                setOriginCoords({ lat: response.data.lat, lng: response.data.lng });
+                setPage(1);
+            } else {
+                setLocationWarning(response.message || "Couldn't find that location — try a different search.");
+            }
+        } catch {
+            setLocationWarning("Couldn't find that location — try a different search.");
+        } finally {
+            setLocationLoading(false);
+        }
+    };
+
+    const handleUseMyLocation = async () => {
+        setLocationLoading(true);
+        setLocationWarning(null);
+        const position = await getCurrentPosition();
+        if (position) {
+            setOriginCoords(position);
+            setPage(1);
+        } else {
+            setLocationWarning("Couldn't access your location — try typing one instead.");
+        }
+        setLocationLoading(false);
+    };
+
+    const handleRadiusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setRadiusKm(e.target.value === '' ? undefined : Number(e.target.value));
         setPage(1);
     };
 
@@ -82,6 +138,7 @@ export const Listings = () => {
 
                 <div className="mb-8 flex justify-center">
                     <select
+                        aria-label="Category"
                         value={categoryId ?? ''}
                         onChange={handleCategoryChange}
                         className="w-full max-w-xs rounded-xl border border-dark-200 bg-white dark:bg-card px-4 py-2 text-text-primary"
@@ -94,6 +151,47 @@ export const Listings = () => {
                         ))}
                     </select>
                 </div>
+
+                <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
+                    <input
+                        type="text"
+                        aria-label="Location"
+                        value={locationQuery}
+                        onChange={(e) => setLocationQuery(e.target.value)}
+                        onBlur={handleLocationBlur}
+                        placeholder="Type a location…"
+                        className="w-full max-w-xs rounded-xl border border-dark-200 bg-white dark:bg-card px-4 py-2 text-text-primary"
+                    />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        isLoading={locationLoading}
+                        onClick={handleUseMyLocation}
+                    >
+                        Use my location
+                    </Button>
+                    <select
+                        aria-label="Radius"
+                        value={radiusKm ?? ''}
+                        onChange={handleRadiusChange}
+                        disabled={!originCoords}
+                        className="rounded-xl border border-dark-200 bg-white dark:bg-card px-4 py-2 text-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <option value="">Radius</option>
+                        {RADIUS_OPTIONS_KM.map((km) => (
+                            <option key={km} value={km}>
+                                {km} km
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {locationWarning && (
+                    <div className="mb-8 text-center text-red-500 bg-red-100 p-3 rounded">
+                        {locationWarning}
+                    </div>
+                )}
 
                 {error && (
                     <div className="mb-8 text-center text-red-500 bg-red-100 p-3 rounded">

@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { ProductType, ProductStatus } from '../../types/product';
 import type { CreateProductRequest } from '../../types/product';
 import { productsApi } from '../../api/products';
+import { getCurrentPosition } from '../../lib/geolocation';
 
 import Button from '../../components/ui/Button';
 import FormTextField from '../../components/ui/FormTextField';
@@ -86,6 +87,11 @@ const ProductForm = () => {
         setIsSubmitting(true);
         setSubmitError(null);
         try {
+            const position = await getCurrentPosition();
+            if (position) {
+                data.latitude = position.lat;
+                data.longitude = position.lng;
+            }
             await productsApi.createProduct(data);
             // Redirect to listings or dashboard?
             navigate('/');

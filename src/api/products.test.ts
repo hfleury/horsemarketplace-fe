@@ -29,4 +29,12 @@ describe('productsApi.list', () => {
     expect(endpoint).toContain('page=2');
     expect(endpoint).toContain('limit=10');
   });
+
+  it('maps lat/lng/radiusKm to lat/lng/radius_km query params', async () => {
+    await productsApi.list({ lat: 59.3293, lng: 18.0686, radiusKm: 50 });
+    const [endpoint] = vi.mocked(apiFetch).mock.calls[0];
+    expect(endpoint).toContain('lat=59.3293');
+    expect(endpoint).toContain('lng=18.0686');
+    expect(endpoint).toContain('radius_km=50');
+  });
 });
