@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../api/auth';
+import { extractErrorMessage } from '../lib/errors';
 import { EyeIcon, EyeSlashIcon, UserIcon, EnvelopeIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 
 interface SignupFormData {
@@ -29,21 +30,8 @@ export const Signup: React.FC = () => {
             });
             // Redirect to login on success
             navigate('/login');
-        } catch (err: any) {
-            let msg = 'Registration failed. Please try again.';
-            // Try to extract message from error
-            try {
-                const match = /{.*}/.exec(err.message || '');
-                if (match) {
-                    const parsed = JSON.parse(match[0]);
-                    if (parsed && parsed.message) msg = parsed.message;
-                } else if (err.message) {
-                    msg = err.message;
-                }
-            } catch (e) {
-                msg = err.message || msg;
-            }
-            setError(msg);
+        } catch (err) {
+            setError(extractErrorMessage(err, 'Registration failed. Please try again.'));
         } finally {
             setLoading(false);
         }

@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography';
 import FormTextField from '../ui/FormTextField';
 import AuthAlert from './AuthAlert';
 import { authApi } from '../../api/auth';
+import { extractErrorMessage } from '../../lib/errors';
 
 const ResendVerification: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -19,7 +20,7 @@ const ResendVerification: React.FC = () => {
         const parsed = JSON.parse(raw);
         if (parsed && parsed.email) setEmail(parsed.email as string);
       }
-    } catch (e) {
+    } catch {
       // ignore
     }
   }, []);
@@ -41,19 +42,9 @@ const ResendVerification: React.FC = () => {
       await authApi.resendVerification(normalize(val));
       setSeverity('success');
       setMessage('If the email exists, a verification message has been sent.');
-    } catch (err: any) {
-      let msg = err?.message || 'Failed to resend verification email.';
-      try {
-        const match = /{.*}/.exec(err?.message || '');
-        if (match) {
-          const parsed = JSON.parse(match[0]);
-          if (parsed && parsed.message) msg = parsed.message;
-        }
-      } catch (e) {
-        // ignore
-      }
+    } catch (err) {
       setSeverity('error');
-      setMessage(msg);
+      setMessage(extractErrorMessage(err, 'Failed to resend verification email.'));
     } finally {
       setLoading(false);
     }

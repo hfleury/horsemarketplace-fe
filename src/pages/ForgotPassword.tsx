@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { authApi } from '../api/auth';
+import { extractErrorMessage } from '../lib/errors';
 import { EnvelopeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 interface ForgotPasswordFormData {
@@ -25,8 +26,8 @@ export const ForgotPassword: React.FC = () => {
             } else {
                 setError(res.message || 'Failed to send password reset request.');
             }
-        } catch (err: any) {
-            setError(err.message || 'Failed to send password reset request.');
+        } catch (err) {
+            setError(extractErrorMessage(err, 'Failed to send password reset request.'));
         } finally {
             setLoading(false);
         }

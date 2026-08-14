@@ -5,6 +5,7 @@ import FormTextField from '../ui/FormTextField';
 import { useAuth } from '../../hooks/useAuth';
 import AuthAlert from './AuthAlert';
 import { authApi } from '../../api/auth';
+import { extractErrorMessage } from '../../lib/errors';
 
 const LoginForm = () => {
   const [username, setUsername] = useState('');
@@ -22,7 +23,7 @@ const LoginForm = () => {
       const normalized = input.includes('@') ? input.toLowerCase() : input;
       await login(normalized, password);
       // Redirect happens in App.tsx via router (or here if no router yet)
-    } catch (err) {
+    } catch {
       // Error already handled in context; UI shows via `error`
     }
   };
@@ -42,19 +43,9 @@ const LoginForm = () => {
       await authApi.resendVerification(username.trim().toLowerCase());
       setResendSeverity('success');
       setResendMessage('Verification email sent — check your inbox.');
-    } catch (err: any) {
-      let msg = err?.message || 'Failed to resend verification email.';
-      try {
-        const match = /{.*}/.exec(err?.message || '');
-        if (match) {
-          const parsed = JSON.parse(match[0]);
-          if (parsed && parsed.message) msg = parsed.message;
-        }
-      } catch (e) {
-        // ignore
-      }
+    } catch (err) {
       setResendSeverity('error');
-      setResendMessage(msg);
+      setResendMessage(extractErrorMessage(err, 'Failed to resend verification email.'));
     } finally {
       setResendLoading(false);
     }

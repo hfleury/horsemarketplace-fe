@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Tag, Plus, Trash2, Folder, ChevronRight, ImageIcon } from 'lucide-react';
 import { categoriesApi } from '../../api/categories';
 import type { Category, CreateCategoryRequest } from '../../types/categories';
@@ -6,6 +6,17 @@ import type { Category, CreateCategoryRequest } from '../../types/categories';
 interface FlattenedCategory extends Category {
     depth: number;
     parentName: string | null;
+}
+
+function flattenCategories(cats: Category[], depth = 0, parentName: string | null = null): FlattenedCategory[] {
+    return cats.reduce((acc, cat) => {
+        const flatCat = { ...cat, depth, parentName };
+        acc.push(flatCat);
+        if (cat.subcategories && cat.subcategories.length > 0) {
+            acc.push(...flattenCategories(cat.subcategories, depth + 1, cat.name));
+        }
+        return acc;
+    }, [] as FlattenedCategory[]);
 }
 
 export const Categories = () => {
@@ -23,18 +34,7 @@ export const Categories = () => {
     });
     const [submitting, setSubmitting] = useState(false);
 
-    const flattenCategories = (cats: Category[], depth = 0, parentName: string | null = null): FlattenedCategory[] => {
-        return cats.reduce((acc, cat) => {
-            const flatCat = { ...cat, depth, parentName };
-            acc.push(flatCat);
-            if (cat.subcategories && cat.subcategories.length > 0) {
-                acc.push(...flattenCategories(cat.subcategories, depth + 1, cat.name));
-            }
-            return acc;
-        }, [] as FlattenedCategory[]);
-    };
-
-    const fetchCategories = async () => {
+    const fetchCategories = useCallback(async () => {
         try {
             setLoading(true);
             const response = await categoriesApi.list();
@@ -48,11 +48,11 @@ export const Categories = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchCategories();
-    }, []);
+    }, [fetchCategories]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
@@ -119,7 +119,7 @@ export const Categories = () => {
             } else {
                 alert(response.message || 'Failed to delete category');
             }
-        } catch (err) {
+        } catch {
             alert('Failed to delete category');
         }
     };

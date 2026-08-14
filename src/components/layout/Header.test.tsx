@@ -13,11 +13,11 @@ vi.mock('react-router-dom', async (importOriginal) => {
     };
 });
 
-vi.mock('../../context/ThemeContext', () => ({
+vi.mock('../../hooks/useTheme', () => ({
     useTheme: () => ({ theme: 'dark', setTheme: vi.fn() }),
 }));
 
-vi.mock('../../context/AuthContext', () => ({
+vi.mock('../../hooks/useAuth', () => ({
     useAuth: () => ({ user: null, logout: vi.fn() }),
 }));
 

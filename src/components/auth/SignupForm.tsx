@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import FormTextField from '../ui/FormTextField';
 import AuthAlert from './AuthAlert';
 import { authApi } from '../../api/auth';
+import { extractErrorMessage } from '../../lib/errors';
 
 const SignupForm = () => {
   const [username, setUsername] = useState('');
@@ -46,25 +47,14 @@ const SignupForm = () => {
       try {
         window.history.replaceState({}, '', '/');
         window.dispatchEvent(new Event('show-login'));
-      } catch (e) {
+      } catch {
         // fallback: navigate
         window.location.href = '/';
       }
       // Optionally clear form or suggest next steps
-    } catch (err: any) {
-      // Attempt to parse a JSON message from server error text
-      let msg = err?.message || 'Failed to create account.';
-      try {
-        const match = /{.*}/.exec(err?.message || '');
-        if (match) {
-          const parsed = JSON.parse(match[0]);
-          if (parsed && parsed.message) msg = parsed.message;
-        }
-      } catch (e) {
-        // ignore
-      }
+    } catch (err) {
       setSeverity('error');
-      setMessage(msg);
+      setMessage(extractErrorMessage(err, 'Failed to create account.'));
     } finally {
       setLoading(false);
     }
@@ -125,7 +115,7 @@ const SignupForm = () => {
             try {
               window.history.replaceState({}, '', '/');
               window.dispatchEvent(new Event('show-login'));
-            } catch (e) {
+            } catch {
               window.location.href = '/';
             }
           }}

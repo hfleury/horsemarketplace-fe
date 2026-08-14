@@ -1,5 +1,5 @@
 import { Bell, Search, User } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 
 export const AdminHeader = () => {
     const { user } = useAuth();

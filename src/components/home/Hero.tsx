@@ -1,5 +1,12 @@
+interface HeroCardProps {
+    className?: string;
+    title: string;
+    author: string;
+    image: string;
+    size?: 'small' | 'large';
+}
 
-const HeroCard = ({ className, title, author, image, size = 'small' }: any) => (
+const HeroCard = ({ className, title, author, image, size = 'small' }: HeroCardProps) => (
     <article className={className}>
         <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-card h-full group cursor-pointer border border-dark-200/50">
             <figure className="relative h-full w-full">

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { authApi } from '../api/auth';
+import { extractErrorMessage } from '../lib/errors';
 import { LockClosedIcon, EyeIcon, EyeSlashIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 interface ResetPasswordFormData {
@@ -42,8 +43,8 @@ export const ResetPassword: React.FC = () => {
             } else {
                 setError(res.message || 'Failed to reset password.');
             }
-        } catch (err: any) {
-            setError(err.message || 'Failed to reset password.');
+        } catch (err) {
+            setError(extractErrorMessage(err, 'Failed to reset password.'));
         } finally {
             setLoading(false);
         }
