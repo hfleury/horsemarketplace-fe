@@ -1,8 +1,19 @@
 import { Link } from 'react-router-dom';
 import { SectionHeader } from '../common/SectionHeader';
 
+interface TopListEntry {
+    name: string;
+    value: string;
+    image: string;
+    verified?: boolean;
+}
+
+interface TopListItemProps extends TopListEntry {
+    rank: number;
+}
+
 // Reusable List Item Component
-const TopListItem = ({ rank, image, name, value, verified = false }: any) => (
+const TopListItem = ({ rank, image, name, value, verified = false }: TopListItemProps) => (
     <div className="flex items-center rounded-2xl border border-dark-200 bg-white dark:bg-card py-4 px-6 transition-all duration-300 hover:shadow-card hover:scale-[1.02] cursor-pointer">
         <div className="relative mr-4 shrink-0">
             <img
@@ -28,12 +39,18 @@ const TopListItem = ({ rank, image, name, value, verified = false }: any) => (
     </div>
 );
 
+interface TopListColumnProps {
+    title: string;
+    items: TopListEntry[];
+    linkText: string;
+}
+
 // Reusable Column Component
-const TopListColumn = ({ title, items, linkText }: any) => (
+const TopListColumn = ({ title, items, linkText }: TopListColumnProps) => (
     <div className="rounded-3xl bg-dark-100/50 p-8 lg:w-1/3 border border-dark-200/50">
         <h3 className="mb-8 text-center font-display text-2xl font-bold text-text-primary">{title}</h3>
         <div className="flex flex-col space-y-4">
-            {items.map((item: any, index: number) => (
+            {items.map((item, index) => (
                 <TopListItem key={index} rank={index + 1} {...item} />
             ))}
         </div>

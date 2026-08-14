@@ -62,7 +62,7 @@ export const Listings = () => {
 
     useEffect(() => {
         setSearchParams(debouncedKeyword ? { q: debouncedKeyword } : {}, { replace: true });
-    }, [debouncedKeyword]);
+    }, [debouncedKeyword, setSearchParams]);
 
     useEffect(() => {
         const fetchProducts = async () => {

@@ -1,17 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { User } from '../types/auth';
 import { authApi } from '../api/auth';
-
-interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
-  loading: boolean;
-  error: string | null;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { extractErrorMessage } from '../lib/errors';
+import { AuthContext } from './authContext';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -27,7 +18,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         setToken(savedToken);
         setUser(JSON.parse(savedUser));
-      } catch (e) {
+      } catch {
         localStorage.removeItem('authToken');
         localStorage.removeItem('authUser');
       }
@@ -50,24 +41,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // TODO: Persist securely (for demo; in prod consider httpOnly cookies)
       localStorage.setItem('authToken', newToken);
       localStorage.setItem('authUser', JSON.stringify(newUser));
-    } catch (err: any) {
-      // Try to extract a helpful message from backend JSON response text
-      let msg = 'Login failed';
-      try {
-        // apiFetch throws Error with response text in message like "HTTP 401: {\"status\":...}"
-        const match = /{.*}/.exec(err.message || '');
-        if (match) {
-          const parsed = JSON.parse(match[0]);
-          if (parsed && parsed.message) msg = parsed.message;
-        } else if (err.message) {
-          msg = err.message;
-        }
-      } catch (e) {
-        // fall back
-        msg = err.message || msg;
-      }
-
-      setError(msg);
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Login failed'));
       throw err;
     } finally {
       setLoading(false);
@@ -86,12 +61,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };

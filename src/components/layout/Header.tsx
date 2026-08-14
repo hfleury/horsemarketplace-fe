@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Search, Wallet, User, Menu, X, Sun, Moon } from 'lucide-react';
 import { Button } from '../common/Button';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../hooks/useTheme';
+import { useAuth } from '../../hooks/useAuth';
 
 export const Header = () => {
     const [isScrolled, setIsScrolled] = useState(false);
