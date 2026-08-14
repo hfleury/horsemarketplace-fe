@@ -76,12 +76,12 @@ describe('Listings', () => {
             </MemoryRouter>
         );
 
-        await waitFor(() => expect(productsApi.list).toHaveBeenCalledWith({ categoryId: undefined, page: 1, limit: 20 }));
+        await waitFor(() => expect(productsApi.list).toHaveBeenCalledWith({ categoryId: undefined, page: 1, limit: 20, q: '' }));
 
         fireEvent.change(screen.getByRole('combobox', { name: 'Category' }), { target: { value: 'cat-1' } });
 
         await waitFor(() =>
-            expect(productsApi.list).toHaveBeenCalledWith({ categoryId: 'cat-1', page: 1, limit: 20 })
+            expect(productsApi.list).toHaveBeenCalledWith({ categoryId: 'cat-1', page: 1, limit: 20, q: '' })
         );
     });
 
@@ -105,7 +105,7 @@ describe('Listings', () => {
         fireEvent.click(nextButton);
 
         await waitFor(() =>
-            expect(productsApi.list).toHaveBeenCalledWith({ categoryId: undefined, page: 2, limit: 20 })
+            expect(productsApi.list).toHaveBeenCalledWith({ categoryId: undefined, page: 2, limit: 20, q: '' })
         );
     });
 
@@ -173,10 +173,63 @@ describe('Listings', () => {
                 categoryId: undefined,
                 page: 1,
                 limit: 20,
+                q: '',
                 lat: 59.3293,
                 lng: 18.0686,
                 radiusKm: 50,
             })
         );
+    });
+
+    it('seeds the keyword input from the q URL param and includes it in the fetch', async () => {
+        vi.mocked(productsApi.list).mockResolvedValue({
+            status: 'success',
+            data: { items: [makeProduct()], total: 1, page: 1, limit: 20 },
+        });
+
+        render(
+            <MemoryRouter initialEntries={['/listings?q=foo']}>
+                <Listings />
+            </MemoryRouter>
+        );
+
+        expect(screen.getByLabelText('Keyword')).toHaveValue('foo');
+
+        await waitFor(() =>
+            expect(productsApi.list).toHaveBeenCalledWith({ categoryId: undefined, page: 1, limit: 20, q: 'foo' })
+        );
+    });
+
+    it('debounces keyword input changes before re-fetching, and resets to page 1', async () => {
+        vi.useFakeTimers({ shouldAdvanceTime: true });
+        vi.mocked(productsApi.list).mockResolvedValue({
+            status: 'success',
+            data: { items: [makeProduct()], total: 40, page: 1, limit: 20 },
+        });
+
+        render(
+            <MemoryRouter>
+                <Listings />
+            </MemoryRouter>
+        );
+
+        await waitFor(() =>
+            expect(productsApi.list).toHaveBeenCalledWith({ categoryId: undefined, page: 1, limit: 20, q: '' })
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: /next/i }));
+        await waitFor(() =>
+            expect(productsApi.list).toHaveBeenCalledWith({ categoryId: undefined, page: 2, limit: 20, q: '' })
+        );
+
+        fireEvent.change(screen.getByLabelText('Keyword'), { target: { value: 'stockholm' } });
+
+        await vi.advanceTimersByTimeAsync(400);
+
+        await waitFor(() =>
+            expect(productsApi.list).toHaveBeenCalledWith({ categoryId: undefined, page: 1, limit: 20, q: 'stockholm' })
+        );
+
+        vi.useRealTimers();
     });
 });

@@ -17,6 +17,7 @@ export const productsApi = {
       lat?: number;
       lng?: number;
       radiusKm?: number;
+      q?: string;
     } = {}
   ) {
     const qs = new URLSearchParams();
@@ -26,6 +27,7 @@ export const productsApi = {
     if (params.lat !== undefined) qs.set('lat', String(params.lat));
     if (params.lng !== undefined) qs.set('lng', String(params.lng));
     if (params.radiusKm !== undefined) qs.set('radius_km', String(params.radiusKm));
+    if (params.q) qs.set('q', params.q);
     const query = qs.toString();
     return apiFetch<ApiResponse<PaginatedProducts>>(`/products${query ? `?${query}` : ''}`);
   },

@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Search, Wallet, User, Menu, X, Sun, Moon } from 'lucide-react';
 import { Button } from '../common/Button';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 
 export const Header = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
     const location = useLocation();
+    const navigate = useNavigate();
     const { theme, setTheme } = useTheme();
     const { user, logout } = useAuth();
 
@@ -19,6 +21,12 @@ export const Header = () => {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const term = searchTerm.trim();
+        navigate(term ? `/listings?q=${encodeURIComponent(term)}` : '/listings');
+    };
 
     const navLinks = [
         { name: 'Home', path: '/' },
@@ -47,14 +55,16 @@ export const Header = () => {
                 {/* Desktop Search & Nav */}
                 <div className="hidden lg:flex items-center gap-8">
                     {/* Search Bar */}
-                    <div className="relative group">
+                    <form onSubmit={handleSearchSubmit} className="relative group">
                         <input
                             type="text"
                             placeholder="Search items, collections..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-64 bg-dark-100 border border-dark-200 rounded-full py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-accent-purple focus:ring-1 focus:ring-accent-purple transition-all placeholder:text-text-muted text-text-primary"
                         />
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted group-focus-within:text-accent-purple" />
-                    </div>
+                    </form>
 
                     <nav className="flex items-center gap-6">
                         {navLinks.map((link) => (
@@ -158,13 +168,15 @@ export const Header = () => {
             {/* Mobile Menu */}
             {isMobileMenuOpen && (
                 <div className="absolute top-full left-0 right-0 bg-background border-b border-dark-200 p-4 lg:hidden animate-slide-up shadow-xl">
-                    <div className="mb-4">
+                    <form className="mb-4" onSubmit={(e) => { handleSearchSubmit(e); setIsMobileMenuOpen(false); }}>
                         <input
                             type="text"
                             placeholder="Search..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full bg-dark-100 border border-dark-200 rounded-xl py-3 px-4 text-text-primary"
                         />
-                    </div>
+                    </form>
                     <nav className="flex flex-col gap-4">
                         {navLinks.map((link) => (
                             <Link

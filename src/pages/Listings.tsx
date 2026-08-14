@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { productsApi } from '../api/products';
 import { categoriesApi } from '../api/categories';
 import { geocodingApi } from '../api/geocoding';
 import { getCurrentPosition } from '../lib/geolocation';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import type { Product } from '../types/product';
 import type { Category } from '../types/categories';
 import { ListingCard } from '../components/products/ListingCard';
@@ -27,6 +29,10 @@ function flattenCategories(cats: Category[], depth = 0): FlatCategory[] {
 }
 
 export const Listings = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [keyword, setKeyword] = useState(() => searchParams.get('q') ?? '');
+    const debouncedKeyword = useDebouncedValue(keyword, 400);
+
     const [products, setProducts] = useState<Product[]>([]);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
@@ -55,6 +61,10 @@ export const Listings = () => {
     }, []);
 
     useEffect(() => {
+        setSearchParams(debouncedKeyword ? { q: debouncedKeyword } : {}, { replace: true });
+    }, [debouncedKeyword]);
+
+    useEffect(() => {
         const fetchProducts = async () => {
             try {
                 setLoading(true);
@@ -64,6 +74,7 @@ export const Listings = () => {
                     categoryId,
                     page,
                     limit: LIMIT,
+                    q: debouncedKeyword,
                     ...(hasLocationFilter && {
                         lat: originCoords.lat,
                         lng: originCoords.lng,
@@ -84,10 +95,15 @@ export const Listings = () => {
         };
 
         fetchProducts();
-    }, [categoryId, page, originCoords, radiusKm]);
+    }, [categoryId, page, originCoords, radiusKm, debouncedKeyword]);
 
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setCategoryId(e.target.value === '' ? undefined : e.target.value);
+        setPage(1);
+    };
+
+    const handleKeywordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setKeyword(e.target.value);
         setPage(1);
     };
 
@@ -153,6 +169,14 @@ export const Listings = () => {
                 </div>
 
                 <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
+                    <input
+                        type="text"
+                        aria-label="Keyword"
+                        value={keyword}
+                        onChange={handleKeywordChange}
+                        placeholder="Search by keyword…"
+                        className="w-full max-w-xs rounded-xl border border-dark-200 bg-white dark:bg-card px-4 py-2 text-text-primary"
+                    />
                     <input
                         type="text"
                         aria-label="Location"
