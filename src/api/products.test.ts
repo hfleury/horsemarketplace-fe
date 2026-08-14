@@ -37,4 +37,22 @@ describe('productsApi.list', () => {
     expect(endpoint).toContain('lng=18.0686');
     expect(endpoint).toContain('radius_km=50');
   });
+
+  it('includes q when a keyword is given', async () => {
+    await productsApi.list({ q: 'foo' });
+    const [endpoint] = vi.mocked(apiFetch).mock.calls[0];
+    expect(endpoint).toContain('q=foo');
+  });
+
+  it('omits q when not given', async () => {
+    await productsApi.list();
+    const [endpoint] = vi.mocked(apiFetch).mock.calls[0];
+    expect(endpoint).not.toContain('q=');
+  });
+
+  it('omits q when given as an empty string', async () => {
+    await productsApi.list({ q: '' });
+    const [endpoint] = vi.mocked(apiFetch).mock.calls[0];
+    expect(endpoint).not.toContain('q=');
+  });
 });
