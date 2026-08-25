@@ -56,3 +56,19 @@ describe('productsApi.list', () => {
     expect(endpoint).not.toContain('q=');
   });
 });
+
+describe('productsApi.getById', () => {
+  beforeEach(() => {
+    vi.mocked(apiFetch).mockReset();
+  });
+
+  it('calls /products/:id and returns the envelope unchanged', async () => {
+    const envelope = { status: 'success', data: { id: 'p1', title: 'Test' } };
+    vi.mocked(apiFetch).mockResolvedValue(envelope);
+
+    const result = await productsApi.getById('p1');
+
+    expect(apiFetch).toHaveBeenCalledWith('/products/p1');
+    expect(result).toBe(envelope);
+  });
+});

@@ -1,3 +1,5 @@
+import type { Category } from './categories';
+
 export const ProductType = {
     Horse: 'horse',
     Vehicle: 'vehicle',
@@ -20,9 +22,11 @@ export const ProductStatus = {
 export type ProductStatusKind = typeof ProductStatus[keyof typeof ProductStatus];
 
 export interface ProductMedia {
-    id: string;
-    url: string;
+    product_id: string;
+    media_id: string;
+    order: number;
     is_primary: boolean;
+    media?: { id: string; url: string };
 }
 
 export interface HorseSpecifics {
@@ -57,10 +61,22 @@ export interface EquipmentSpecifics {
     boom_width?: string;
 }
 
+export interface ServiceSpecifics {
+    service_type?: string;
+    availability?: string;
+}
+
+export interface PropertySpecifics {
+    size_m2?: number;
+    room_count?: number;
+    has_stable?: boolean;
+}
+
 export interface Product {
     id: string;
     user_id: string;
     category_id?: string;
+    category?: Category;
     type: ProductTypeKind;
     status: ProductStatusKind;
     title: string;
@@ -82,6 +98,8 @@ export interface Product {
     horse?: HorseSpecifics;
     vehicle?: VehicleSpecifics;
     equipment?: EquipmentSpecifics;
+    service?: ServiceSpecifics;
+    property?: PropertySpecifics;
 }
 
 export interface PaginatedProducts {

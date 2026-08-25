@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { ListingCard } from './ListingCard';
 import { ProductStatus, ProductType, type Product } from '../../types/product';
 
@@ -23,7 +24,11 @@ describe('ListingCard', () => {
             type: ProductType.Horse,
             horse: { breed: 'Warmblood', age: 5 },
         };
-        render(<ListingCard product={horseProduct} />);
+        render(
+            <MemoryRouter>
+                <ListingCard product={horseProduct} />
+            </MemoryRouter>
+        );
         expect(screen.getByText('Test Listing')).toBeInTheDocument();
         expect(screen.getByText('Warmblood • 5 yrs')).toBeInTheDocument();
     });
@@ -34,7 +39,11 @@ describe('ListingCard', () => {
             type: ProductType.Vehicle,
             vehicle: { make: 'Ifor Williams', model: 'HB506' },
         };
-        render(<ListingCard product={vehicleProduct} />);
+        render(
+            <MemoryRouter>
+                <ListingCard product={vehicleProduct} />
+            </MemoryRouter>
+        );
         expect(screen.getByText('Ifor Williams HB506')).toBeInTheDocument();
     });
 
@@ -44,7 +53,20 @@ describe('ListingCard', () => {
             type: ProductType.Equipment,
             equipment: { make: 'Passier', model: 'Dressage Saddle' },
         };
-        render(<ListingCard product={equipmentProduct} />);
+        render(
+            <MemoryRouter>
+                <ListingCard product={equipmentProduct} />
+            </MemoryRouter>
+        );
         expect(screen.getByText('Passier Dressage Saddle')).toBeInTheDocument();
+    });
+
+    it('links to the listing detail route', () => {
+        render(
+            <MemoryRouter>
+                <ListingCard product={baseProduct} />
+            </MemoryRouter>
+        );
+        expect(screen.getByRole('link')).toHaveAttribute('href', '/listings/p1');
     });
 });
