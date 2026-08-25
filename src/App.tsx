@@ -12,6 +12,7 @@ import { Categories } from './pages/admin/Categories';
 import { AuthProvider } from './context/AuthContext';
 import CreateProduct from './pages/CreateProduct';
 import { Listings } from './pages/Listings';
+import { ListingDetail } from './pages/ListingDetail';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/home-6" element={<Home />} />
             <Route path="/listings" element={<Listings />} />
+            <Route path="/listings/:id" element={<ListingDetail />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />

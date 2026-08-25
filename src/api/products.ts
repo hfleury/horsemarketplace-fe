@@ -9,6 +9,9 @@ export const productsApi = {
       body: JSON.stringify(data),
     });
   },
+  getById(id: string) {
+    return apiFetch<ApiResponse<Product>>(`/products/${id}`);
+  },
   list(
     params: {
       categoryId?: string;
