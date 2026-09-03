@@ -2,16 +2,10 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { productsApi } from '../api/products';
 import { formatPrice } from '../lib/formatPrice';
-import { ProductType, type Product, type ProductMedia } from '../types/product';
+import { PhotoGallery } from '../components/products/PhotoGallery';
+import { ProductType, type Product } from '../types/product';
 
 type SpecEntries = Array<[string, string | number | boolean | undefined]>;
-
-function sortMediaPrimaryFirst(media: ProductMedia[]): ProductMedia[] {
-    return [...media].sort((a, b) => {
-        if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
-        return a.order - b.order;
-    });
-}
 
 // Horse.pedigree is an opaque JSON blob (no structured schema yet) — intentionally not rendered.
 function getSpecEntries(product: Product): SpecEntries {
@@ -83,26 +77,6 @@ function SpecList({ product }: { product: Product }) {
                     <span className="text-text-secondary">{label}</span>
                     <span className="font-medium text-text-primary">{String(value)}</span>
                 </div>
-            ))}
-        </div>
-    );
-}
-
-function PhotoGallery({ media }: { media?: ProductMedia[] }) {
-    if (!media || media.length === 0) {
-        return <div className="h-80 w-full rounded-3xl bg-dark-100/50 dark:bg-dark-200/30" />;
-    }
-
-    const sorted = sortMediaPrimaryFirst(media);
-    return (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {sorted.map((item) => (
-                <img
-                    key={item.media_id}
-                    src={item.media?.url}
-                    alt=""
-                    className="aspect-square w-full rounded-2xl object-cover"
-                />
             ))}
         </div>
     );
