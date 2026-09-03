@@ -9,6 +9,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { Users } from './pages/admin/Users';
 import { Categories } from './pages/admin/Categories';
+import { HorseAttributes } from './pages/admin/HorseAttributes';
 import { AuthProvider } from './context/AuthContext';
 import CreateProduct from './pages/CreateProduct';
 import { Listings } from './pages/Listings';
@@ -44,6 +45,7 @@ function App() {
               <Route index element={<div className="p-4">Dashboard Overview (Coming Soon)</div>} />
               <Route path="users" element={<Users />} />
               <Route path="categories" element={<Categories />} />
+              <Route path="horse-attributes" element={<HorseAttributes />} />
             </Route>
           </Route>
         </Routes>
