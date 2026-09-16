@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Eye, Heart } from 'lucide-react';
+import { Eye, Heart, Copy, Check } from 'lucide-react';
 import { productsApi } from '../api/products';
 import { formatPrice } from '../lib/formatPrice';
 import { formatCount } from '../lib/pluralize';
 import { PhotoGallery } from '../components/products/PhotoGallery';
+import IconButton from '../components/ui/IconButton';
 import { ProductType, type Product } from '../types/product';
 
 type SpecEntries = Array<[string, string | number | boolean | undefined]>;
@@ -89,6 +90,7 @@ export function ListingDetail() {
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [linkCopied, setLinkCopied] = useState(false);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -111,6 +113,18 @@ export function ListingDetail() {
         fetchProduct();
     }, [id]);
 
+    async function handleCopyLink() {
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            setLinkCopied(true);
+            setTimeout(() => setLinkCopied(false), 2000);
+        } catch {
+            // Clipboard write can fail in non-secure contexts or unsupported browsers;
+            // this is a low-stakes convenience action with no existing error-UI precedent
+            // in this codebase, so failure is a silent no-op rather than new error UI.
+        }
+    }
+
     return (
         <section className="py-24 px-6 md:px-12 bg-background">
             <div className="container-custom">
@@ -122,7 +136,15 @@ export function ListingDetail() {
 
                 {!loading && !error && product && (
                     <>
-                        <div className="text-center mb-12">
+                        <div className="relative text-center mb-12">
+                            <IconButton
+                                icon={linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                ariaLabel={linkCopied ? 'Link copied' : 'Copy link to this listing'}
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleCopyLink}
+                                className="absolute right-4 top-0"
+                            />
                             <h1 className="text-3xl md:text-4xl font-bold mb-4">{product.title}</h1>
                             <p className="text-2xl font-bold text-accent-purple">{formatPrice(product.price_sek)}</p>
                             {(product.city || product.area) && (
