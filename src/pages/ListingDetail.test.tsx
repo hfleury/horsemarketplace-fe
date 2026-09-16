@@ -18,6 +18,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
         title: 'Test Horse',
         price_sek: 5000,
         views_count: 3,
+        favorite_count: 5,
         created_at: '2026-01-01T00:00:00Z',
         updated_at: '2026-01-01T00:00:00Z',
         ...overrides,
@@ -59,6 +60,23 @@ describe('ListingDetail', () => {
         expect(screen.getByText('5 000 SEK')).toBeInTheDocument();
         expect(screen.getByText('Warmblood')).toBeInTheDocument();
         expect(productsApi.getById).toHaveBeenCalledWith('p1');
+        expect(screen.getByText('3 views')).toBeInTheDocument();
+        expect(screen.getByText('5 favorites')).toBeInTheDocument();
+    });
+
+    it('shows singular wording when a count is exactly 1', async () => {
+        vi.mocked(productsApi.getById).mockResolvedValue({
+            status: 'success',
+            data: makeProduct({ views_count: 1, favorite_count: 1 }),
+        });
+
+        renderAtListing('p1');
+
+        await waitFor(() => expect(screen.getByText('Test Horse')).toBeInTheDocument());
+        expect(screen.getByText('1 view')).toBeInTheDocument();
+        expect(screen.getByText('1 favorite')).toBeInTheDocument();
+        expect(screen.queryByText('1 views')).not.toBeInTheDocument();
+        expect(screen.queryByText('1 favorites')).not.toBeInTheDocument();
     });
 
     it('renders the vehicle spec block for a vehicle-type product', async () => {

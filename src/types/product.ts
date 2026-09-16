@@ -88,6 +88,7 @@ export interface Product {
     longitude?: number;
     transaction_type?: string;
     views_count: number;
+    favorite_count: number;
     created_at: string;
     updated_at: string;
 
