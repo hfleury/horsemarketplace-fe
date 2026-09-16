@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { ListingDetail } from './ListingDetail';
 import { productsApi } from '../api/products';
@@ -105,5 +105,50 @@ describe('ListingDetail', () => {
         renderAtListing('bad-id');
 
         await waitFor(() => expect(screen.getByText('Listing not found')).toBeInTheDocument());
+    });
+
+    describe('copy link button', () => {
+        beforeEach(() => {
+            Object.assign(navigator, {
+                clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+            });
+        });
+
+        it('copies the current URL when clicked', async () => {
+            vi.mocked(productsApi.getById).mockResolvedValue({
+                status: 'success',
+                data: makeProduct(),
+            });
+
+            renderAtListing('p1');
+
+            await waitFor(() => expect(screen.getByText('Test Horse')).toBeInTheDocument());
+            fireEvent.click(screen.getByRole('button', { name: /copy link/i }));
+
+            await waitFor(() =>
+                expect(navigator.clipboard.writeText).toHaveBeenCalledWith(window.location.href)
+            );
+        });
+
+        it('swaps the icon to a confirmation state and reverts after 2 seconds', async () => {
+            vi.useFakeTimers();
+            vi.mocked(productsApi.getById).mockResolvedValue({
+                status: 'success',
+                data: makeProduct(),
+            });
+
+            renderAtListing('p1');
+
+            await vi.waitFor(() => expect(screen.getByText('Test Horse')).toBeInTheDocument());
+            fireEvent.click(screen.getByRole('button', { name: /copy link/i }));
+
+            await vi.waitFor(() => expect(screen.getByRole('button', { name: /link copied/i })).toBeInTheDocument());
+
+            vi.advanceTimersByTime(2000);
+
+            await vi.waitFor(() => expect(screen.getByRole('button', { name: /copy link/i })).toBeInTheDocument());
+
+            vi.useRealTimers();
+        });
     });
 });
