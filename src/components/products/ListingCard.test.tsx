@@ -13,6 +13,7 @@ const baseProduct: Product = {
     price_sek: 12000,
     city: 'Stockholm',
     views_count: 0,
+    favorite_count: 0,
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
 };

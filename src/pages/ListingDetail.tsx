@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Eye, Heart } from 'lucide-react';
 import { productsApi } from '../api/products';
 import { formatPrice } from '../lib/formatPrice';
+import { formatCount } from '../lib/pluralize';
 import { PhotoGallery } from '../components/products/PhotoGallery';
 import { ProductType, type Product } from '../types/product';
 
@@ -146,7 +148,16 @@ export function ListingDetail() {
                                     </div>
                                 )}
 
-                                <p className="text-sm text-text-secondary">{product.views_count} views</p>
+                                <div className="flex items-center gap-4 text-sm text-text-secondary">
+                                    <span className="flex items-center gap-1.5">
+                                        <Eye className="h-4 w-4" />
+                                        {formatCount(product.views_count, 'view', 'views')}
+                                    </span>
+                                    <span className="flex items-center gap-1.5">
+                                        <Heart className="h-4 w-4" />
+                                        {formatCount(product.favorite_count, 'favorite', 'favorites')}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </>

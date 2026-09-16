@@ -28,6 +28,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
         title: 'Test Horse',
         price_sek: 5000,
         views_count: 0,
+        favorite_count: 0,
         created_at: '2026-01-01T00:00:00Z',
         updated_at: '2026-01-01T00:00:00Z',
         ...overrides,
