@@ -12,6 +12,9 @@ export const productsApi = {
   getById(id: string) {
     return apiFetch<ApiResponse<Product>>(`/products/${id}`);
   },
+  getSimilar(id: string, limit = 4) {
+    return apiFetch<ApiResponse<Product[]>>(`/products/${id}/similar?limit=${limit}`);
+  },
   list(
     params: {
       categoryId?: string;

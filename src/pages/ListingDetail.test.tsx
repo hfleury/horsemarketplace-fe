@@ -6,7 +6,7 @@ import { productsApi } from '../api/products';
 import { ProductStatus, ProductType, type Product } from '../types/product';
 
 vi.mock('../api/products', () => ({
-    productsApi: { getById: vi.fn() },
+    productsApi: { getById: vi.fn(), getSimilar: vi.fn() },
 }));
 
 function makeProduct(overrides: Partial<Product> = {}): Product {
@@ -38,6 +38,8 @@ function renderAtListing(id: string) {
 describe('ListingDetail', () => {
     beforeEach(() => {
         vi.mocked(productsApi.getById).mockReset();
+        vi.mocked(productsApi.getSimilar).mockReset();
+        vi.mocked(productsApi.getSimilar).mockResolvedValue({ status: 'success', data: [] });
     });
 
     it('shows a loading state before the fetch resolves', async () => {
@@ -149,6 +151,56 @@ describe('ListingDetail', () => {
             await vi.waitFor(() => expect(screen.getByRole('button', { name: /copy link/i })).toBeInTheDocument());
 
             vi.useRealTimers();
+        });
+    });
+
+    describe('similar listings', () => {
+        it('renders the "Similar listings" heading and cards when related products are returned', async () => {
+            vi.mocked(productsApi.getById).mockResolvedValue({
+                status: 'success',
+                data: makeProduct(),
+            });
+            vi.mocked(productsApi.getSimilar).mockResolvedValue({
+                status: 'success',
+                data: [
+                    makeProduct({ id: 'p2', title: 'Related Horse One' }),
+                    makeProduct({ id: 'p3', title: 'Related Horse Two' }),
+                ],
+            });
+
+            renderAtListing('p1');
+
+            await waitFor(() => expect(screen.getByText('Test Horse')).toBeInTheDocument());
+            await waitFor(() => expect(screen.getByText('Similar listings')).toBeInTheDocument());
+            expect(screen.getByText('Related Horse One')).toBeInTheDocument();
+            expect(screen.getByText('Related Horse Two')).toBeInTheDocument();
+        });
+
+        it('does not render the "Similar listings" heading when there are no related products', async () => {
+            vi.mocked(productsApi.getById).mockResolvedValue({
+                status: 'success',
+                data: makeProduct(),
+            });
+            vi.mocked(productsApi.getSimilar).mockResolvedValue({ status: 'success', data: [] });
+
+            renderAtListing('p1');
+
+            await waitFor(() => expect(screen.getByText('Test Horse')).toBeInTheDocument());
+            expect(screen.queryByText('Similar listings')).not.toBeInTheDocument();
+        });
+
+        it('still renders the main product when the similar-listings fetch rejects', async () => {
+            vi.mocked(productsApi.getById).mockResolvedValue({
+                status: 'success',
+                data: makeProduct(),
+            });
+            vi.mocked(productsApi.getSimilar).mockRejectedValue(new Error('network error'));
+
+            renderAtListing('p1');
+
+            await waitFor(() => expect(screen.getByText('Test Horse')).toBeInTheDocument());
+            expect(screen.queryByText('Similar listings')).not.toBeInTheDocument();
+            expect(screen.queryByText(/network error/i)).not.toBeInTheDocument();
         });
     });
 });

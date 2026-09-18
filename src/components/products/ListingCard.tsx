@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ProductType, type Product } from '../../types/product';
 import { formatPrice } from '../../lib/formatPrice';
+import { selectCoverImage } from '../../lib/media';
 
 function TypeSummary({ product }: { product: Product }) {
     switch (product.type) {
@@ -26,12 +28,24 @@ interface ListingCardProps {
 }
 
 export function ListingCard({ product }: ListingCardProps) {
+    const [imageFailed, setImageFailed] = useState(false);
+    const coverImage = selectCoverImage(product.media);
+
     return (
         <Link
             to={`/listings/${product.id}`}
             className="flex flex-col overflow-hidden rounded-3xl border border-dark-200 bg-white dark:bg-card transition-all duration-300 hover:shadow-card hover:scale-[1.02]"
         >
-            <div className="h-40 w-full rounded-t-3xl bg-dark-100/50 dark:bg-dark-200/30" />
+            {coverImage?.media?.url && !imageFailed ? (
+                <img
+                    src={coverImage.media.url}
+                    alt={product.title}
+                    className="h-40 w-full rounded-t-3xl object-cover"
+                    onError={() => setImageFailed(true)}
+                />
+            ) : (
+                <div className="h-40 w-full rounded-t-3xl bg-dark-100/50 dark:bg-dark-200/30" />
+            )}
 
             <div className="flex flex-col gap-1 p-6">
                 <h3 className="font-display font-bold text-text-primary line-clamp-1">{product.title}</h3>
