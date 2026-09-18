@@ -5,6 +5,8 @@ import { productsApi } from '../api/products';
 import { formatPrice } from '../lib/formatPrice';
 import { formatCount } from '../lib/pluralize';
 import { PhotoGallery } from '../components/products/PhotoGallery';
+import { ListingCard } from '../components/products/ListingCard';
+import { SectionHeader } from '../components/common/SectionHeader';
 import IconButton from '../components/ui/IconButton';
 import { ProductType, type Product } from '../types/product';
 
@@ -91,6 +93,7 @@ export function ListingDetail() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [linkCopied, setLinkCopied] = useState(false);
+    const [relatedListings, setRelatedListings] = useState<Product[]>([]);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -111,6 +114,22 @@ export function ListingDetail() {
         };
 
         fetchProduct();
+    }, [id]);
+
+    useEffect(() => {
+        const fetchRelatedListings = async () => {
+            try {
+                const response = await productsApi.getSimilar(id!, 4);
+                if (response.status === 'success' && response.data) {
+                    setRelatedListings(response.data);
+                }
+            } catch {
+                // Supplementary section — a failed fetch here must not surface
+                // the page's primary error UI or block the main product view.
+            }
+        };
+
+        fetchRelatedListings();
     }, [id]);
 
     async function handleCopyLink() {
@@ -182,6 +201,17 @@ export function ListingDetail() {
                                 </div>
                             </div>
                         </div>
+
+                        {relatedListings.length > 0 && (
+                            <div className="mt-16">
+                                <SectionHeader title="Similar listings" />
+                                <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                    {relatedListings.map((related) => (
+                                        <ListingCard key={related.id} product={related} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </>
                 )}
             </div>
