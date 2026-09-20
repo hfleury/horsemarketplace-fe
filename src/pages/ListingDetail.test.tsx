@@ -12,6 +12,11 @@ vi.mock('../api/products', () => ({
 
 vi.mock('../hooks/useAuth', () => ({ useAuth: vi.fn() }));
 
+vi.mock('../components/products/MessageSellerPanel', () => ({
+    MessageSellerPanel: ({ open }: { open: boolean }) =>
+        open ? <div data-testid="message-seller-panel" /> : null,
+}));
+
 function makeProduct(overrides: Partial<Product> = {}): Product {
     return {
         id: 'p1',
@@ -264,6 +269,59 @@ describe('ListingDetail', () => {
                 fireEvent.click(screen.getByRole('button', { name: /report listing/i }));
 
                 expect(screen.getByRole('combobox')).toBeInTheDocument();
+            });
+        });
+    });
+
+    describe('message seller', () => {
+        it('does not render the Message seller button when logged out', async () => {
+            vi.mocked(productsApi.getById).mockResolvedValue({
+                status: 'success',
+                data: makeProduct(),
+            });
+
+            renderAtListing('p1');
+
+            await waitFor(() => expect(screen.getByText('Test Horse')).toBeInTheDocument());
+            expect(screen.queryByRole('button', { name: /message seller/i })).not.toBeInTheDocument();
+        });
+
+        describe('when logged in', () => {
+            beforeEach(() => {
+                vi.mocked(useAuth).mockReturnValue({
+                    user: { username: 'alice', email: 'alice@example.com' },
+                    token: 'token123',
+                    login: vi.fn(),
+                    logout: vi.fn(),
+                    loading: false,
+                    error: null,
+                });
+            });
+
+            it('renders the Message seller button when logged in', async () => {
+                vi.mocked(productsApi.getById).mockResolvedValue({
+                    status: 'success',
+                    data: makeProduct(),
+                });
+
+                renderAtListing('p1');
+
+                await waitFor(() => expect(screen.getByText('Test Horse')).toBeInTheDocument());
+                expect(screen.getByRole('button', { name: /message seller/i })).toBeInTheDocument();
+            });
+
+            it('opens the message panel when clicked', async () => {
+                vi.mocked(productsApi.getById).mockResolvedValue({
+                    status: 'success',
+                    data: makeProduct(),
+                });
+
+                renderAtListing('p1');
+
+                await waitFor(() => expect(screen.getByText('Test Horse')).toBeInTheDocument());
+                fireEvent.click(screen.getByRole('button', { name: /message seller/i }));
+
+                expect(screen.getByTestId('message-seller-panel')).toBeInTheDocument();
             });
         });
     });
