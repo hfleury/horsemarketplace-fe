@@ -15,6 +15,7 @@ export interface Message {
     sender_id: string;
     body: string;
     created_at: string;
+    is_mine: boolean;
 }
 
 export interface CreateConversationRequest {
@@ -28,4 +29,26 @@ export interface SendMessageRequest {
 export interface ListMessagesResponse {
     messages: Message[];
     has_more: boolean;
+}
+
+export interface ConversationSummary {
+    id: string;
+    product_id: string;
+    product_title: string;
+    product_thumbnail_url: string | null;
+    counterparty_id: string;
+    counterparty_username: string;
+    last_message_body: string | null;
+    last_message_sender_id: string | null;
+    last_message_at: string | null;
+    is_unread: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PaginatedConversations {
+    items: ConversationSummary[];
+    total: number;
+    page: number;
+    limit: number;
 }
