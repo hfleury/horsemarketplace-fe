@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Eye, Heart, Copy, Check, Flag } from 'lucide-react';
+import { Eye, Heart, Copy, Check, Flag, MessageCircle } from 'lucide-react';
 import { productsApi } from '../api/products';
 import { formatPrice } from '../lib/formatPrice';
 import { formatCount } from '../lib/pluralize';
@@ -9,6 +9,7 @@ import { ListingCard } from '../components/products/ListingCard';
 import { SectionHeader } from '../components/common/SectionHeader';
 import IconButton from '../components/ui/IconButton';
 import { ReportListingDialog } from '../components/products/ReportListingDialog';
+import { MessageSellerPanel } from '../components/products/MessageSellerPanel';
 import { useAuth } from '../hooks/useAuth';
 import { ProductType, type Product } from '../types/product';
 
@@ -98,6 +99,7 @@ export function ListingDetail() {
     const [linkCopied, setLinkCopied] = useState(false);
     const [relatedListings, setRelatedListings] = useState<Product[]>([]);
     const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+    const [isMessagePanelOpen, setIsMessagePanelOpen] = useState(false);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -169,13 +171,22 @@ export function ListingDetail() {
                                     onClick={handleCopyLink}
                                 />
                                 {user && (
-                                    <IconButton
-                                        icon={<Flag className="h-4 w-4" />}
-                                        ariaLabel="Report listing"
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setIsReportDialogOpen(true)}
-                                    />
+                                    <>
+                                        <IconButton
+                                            icon={<MessageCircle className="h-4 w-4" />}
+                                            ariaLabel="Message seller"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setIsMessagePanelOpen(true)}
+                                        />
+                                        <IconButton
+                                            icon={<Flag className="h-4 w-4" />}
+                                            ariaLabel="Report listing"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setIsReportDialogOpen(true)}
+                                        />
+                                    </>
                                 )}
                             </div>
                             <h1 className="text-3xl md:text-4xl font-bold mb-4">{product.title}</h1>
@@ -230,6 +241,12 @@ export function ListingDetail() {
                         <ReportListingDialog
                             open={isReportDialogOpen}
                             onClose={() => setIsReportDialogOpen(false)}
+                            productId={product.id}
+                        />
+
+                        <MessageSellerPanel
+                            open={isMessagePanelOpen}
+                            onClose={() => setIsMessagePanelOpen(false)}
                             productId={product.id}
                         />
                     </>
