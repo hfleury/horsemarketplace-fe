@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Eye, Heart, Copy, Check } from 'lucide-react';
+import { Eye, Heart, Copy, Check, Flag } from 'lucide-react';
 import { productsApi } from '../api/products';
 import { formatPrice } from '../lib/formatPrice';
 import { formatCount } from '../lib/pluralize';
@@ -8,6 +8,8 @@ import { PhotoGallery } from '../components/products/PhotoGallery';
 import { ListingCard } from '../components/products/ListingCard';
 import { SectionHeader } from '../components/common/SectionHeader';
 import IconButton from '../components/ui/IconButton';
+import { ReportListingDialog } from '../components/products/ReportListingDialog';
+import { useAuth } from '../hooks/useAuth';
 import { ProductType, type Product } from '../types/product';
 
 type SpecEntries = Array<[string, string | number | boolean | undefined]>;
@@ -89,11 +91,13 @@ function SpecList({ product }: { product: Product }) {
 
 export function ListingDetail() {
     const { id } = useParams<{ id: string }>();
+    const { user } = useAuth();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [linkCopied, setLinkCopied] = useState(false);
     const [relatedListings, setRelatedListings] = useState<Product[]>([]);
+    const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -156,14 +160,24 @@ export function ListingDetail() {
                 {!loading && !error && product && (
                     <>
                         <div className="relative text-center mb-12">
-                            <IconButton
-                                icon={linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                                ariaLabel={linkCopied ? 'Link copied' : 'Copy link to this listing'}
-                                variant="ghost"
-                                size="sm"
-                                onClick={handleCopyLink}
-                                className="absolute right-4 top-0"
-                            />
+                            <div className="absolute right-4 top-0 flex gap-2">
+                                <IconButton
+                                    icon={linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                    ariaLabel={linkCopied ? 'Link copied' : 'Copy link to this listing'}
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleCopyLink}
+                                />
+                                {user && (
+                                    <IconButton
+                                        icon={<Flag className="h-4 w-4" />}
+                                        ariaLabel="Report listing"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setIsReportDialogOpen(true)}
+                                    />
+                                )}
+                            </div>
                             <h1 className="text-3xl md:text-4xl font-bold mb-4">{product.title}</h1>
                             <p className="text-2xl font-bold text-accent-purple">{formatPrice(product.price_sek)}</p>
                             {(product.city || product.area) && (
@@ -212,6 +226,12 @@ export function ListingDetail() {
                                 </div>
                             </div>
                         )}
+
+                        <ReportListingDialog
+                            open={isReportDialogOpen}
+                            onClose={() => setIsReportDialogOpen(false)}
+                            productId={product.id}
+                        />
                     </>
                 )}
             </div>

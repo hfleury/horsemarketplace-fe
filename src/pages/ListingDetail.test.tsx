@@ -3,11 +3,14 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { ListingDetail } from './ListingDetail';
 import { productsApi } from '../api/products';
+import { useAuth } from '../hooks/useAuth';
 import { ProductStatus, ProductType, type Product } from '../types/product';
 
 vi.mock('../api/products', () => ({
     productsApi: { getById: vi.fn(), getSimilar: vi.fn() },
 }));
+
+vi.mock('../hooks/useAuth', () => ({ useAuth: vi.fn() }));
 
 function makeProduct(overrides: Partial<Product> = {}): Product {
     return {
@@ -40,6 +43,14 @@ describe('ListingDetail', () => {
         vi.mocked(productsApi.getById).mockReset();
         vi.mocked(productsApi.getSimilar).mockReset();
         vi.mocked(productsApi.getSimilar).mockResolvedValue({ status: 'success', data: [] });
+        vi.mocked(useAuth).mockReturnValue({
+            user: null,
+            token: null,
+            login: vi.fn(),
+            logout: vi.fn(),
+            loading: false,
+            error: null,
+        });
     });
 
     it('shows a loading state before the fetch resolves', async () => {
@@ -201,6 +212,59 @@ describe('ListingDetail', () => {
             await waitFor(() => expect(screen.getByText('Test Horse')).toBeInTheDocument());
             expect(screen.queryByText('Similar listings')).not.toBeInTheDocument();
             expect(screen.queryByText(/network error/i)).not.toBeInTheDocument();
+        });
+    });
+
+    describe('report listing', () => {
+        it('does not render the Report listing button when logged out', async () => {
+            vi.mocked(productsApi.getById).mockResolvedValue({
+                status: 'success',
+                data: makeProduct(),
+            });
+
+            renderAtListing('p1');
+
+            await waitFor(() => expect(screen.getByText('Test Horse')).toBeInTheDocument());
+            expect(screen.queryByRole('button', { name: /report listing/i })).not.toBeInTheDocument();
+        });
+
+        describe('when logged in', () => {
+            beforeEach(() => {
+                vi.mocked(useAuth).mockReturnValue({
+                    user: { username: 'alice', email: 'alice@example.com' },
+                    token: 'token123',
+                    login: vi.fn(),
+                    logout: vi.fn(),
+                    loading: false,
+                    error: null,
+                });
+            });
+
+            it('renders the Report listing button when logged in', async () => {
+                vi.mocked(productsApi.getById).mockResolvedValue({
+                    status: 'success',
+                    data: makeProduct(),
+                });
+
+                renderAtListing('p1');
+
+                await waitFor(() => expect(screen.getByText('Test Horse')).toBeInTheDocument());
+                expect(screen.getByRole('button', { name: /report listing/i })).toBeInTheDocument();
+            });
+
+            it('opens the report dialog when clicked', async () => {
+                vi.mocked(productsApi.getById).mockResolvedValue({
+                    status: 'success',
+                    data: makeProduct(),
+                });
+
+                renderAtListing('p1');
+
+                await waitFor(() => expect(screen.getByText('Test Horse')).toBeInTheDocument());
+                fireEvent.click(screen.getByRole('button', { name: /report listing/i }));
+
+                expect(screen.getByRole('combobox')).toBeInTheDocument();
+            });
         });
     });
 });
