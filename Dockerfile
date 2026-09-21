@@ -10,6 +10,11 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Vite inlines import.meta.env.* at build time, so the backend's public URL
+# must be injected as a build-arg per environment.
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 # Build the app
 RUN npm run build
 
