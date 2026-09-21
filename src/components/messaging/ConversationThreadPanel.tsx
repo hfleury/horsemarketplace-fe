@@ -1,67 +1,44 @@
 import { useEffect, useRef, useState } from 'react';
-import { X } from 'lucide-react';
 import Button from '../ui/Button';
-import IconButton from '../ui/IconButton';
 import { messagingApi } from '../../api/messaging';
 import { usePolling } from '../../hooks/usePolling';
 import { extractBackendMessage, fetchAllMessages, mapMessagingError } from '../../lib/messagingHelpers';
-import type { Conversation, Message } from '../../types/messaging';
+import type { Message } from '../../types/messaging';
 
 const POLL_INTERVAL_MS = 7000;
 
-interface MessageSellerPanelProps {
-    open: boolean;
-    onClose: () => void;
-    productId: string;
+interface ConversationThreadPanelProps {
+    conversationId: string;
+    counterpartyUsername: string;
 }
 
-export function MessageSellerPanel({ open, onClose, productId }: MessageSellerPanelProps) {
-    const [conversation, setConversation] = useState<Conversation | null>(null);
+export function ConversationThreadPanel({ conversationId, counterpartyUsername }: ConversationThreadPanelProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [draft, setDraft] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const messageListRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (!open) return;
-
         setDraft('');
         setSending(false);
         setError(null);
-        setConversation(null);
         setMessages([]);
         setLoading(true);
 
-        async function loadConversation() {
-            try {
-                const createResponse = await messagingApi.createConversation(productId);
-                if (createResponse.status !== 'success' || !createResponse.data) {
-                    setError(mapMessagingError(createResponse.message ?? null));
-                    return;
-                }
-
-                const newConversation = createResponse.data;
-                setConversation(newConversation);
-                setMessages(await fetchAllMessages(newConversation.id));
-            } catch (err) {
-                setError(mapMessagingError(extractBackendMessage(err)));
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        loadConversation();
-    }, [open, productId]);
+        fetchAllMessages(conversationId)
+            .then(setMessages)
+            .catch((err) => setError(mapMessagingError(extractBackendMessage(err))))
+            .finally(() => setLoading(false));
+    }, [conversationId]);
 
     usePolling(
         () => {
-            if (!conversation) return;
-            fetchAllMessages(conversation.id).then(setMessages);
+            fetchAllMessages(conversationId).then(setMessages);
         },
         POLL_INTERVAL_MS,
-        open && conversation !== null
+        true
     );
 
     useEffect(() => {
@@ -71,12 +48,12 @@ export function MessageSellerPanel({ open, onClose, productId }: MessageSellerPa
 
     async function handleSend() {
         const body = draft.trim();
-        if (!body || !conversation) return;
+        if (!body) return;
 
         setSending(true);
         setError(null);
         try {
-            const response = await messagingApi.sendMessage(conversation.id, body);
+            const response = await messagingApi.sendMessage(conversationId, body);
             if (response.status === 'success' && response.data) {
                 const sentMessage = response.data;
                 setMessages((current) => [...current, sentMessage]);
@@ -91,21 +68,8 @@ export function MessageSellerPanel({ open, onClose, productId }: MessageSellerPa
         }
     }
 
-    if (!open) return null;
-
     return (
-        <div className="fixed bottom-4 right-4 z-40 flex h-[28rem] w-80 flex-col overflow-hidden rounded-2xl border border-dark-200 bg-dark-300 text-white shadow-glow-md md:w-96">
-            <div className="flex items-center justify-between border-b border-dark-200 px-4 py-3">
-                <span className="font-medium">Chat with seller</span>
-                <IconButton
-                    icon={<X className="h-4 w-4" />}
-                    ariaLabel="Close chat"
-                    variant="ghost"
-                    size="sm"
-                    onClick={onClose}
-                />
-            </div>
-
+        <div className="flex h-96 flex-col overflow-hidden rounded-2xl border border-dark-200 bg-dark-300 text-white">
             <div ref={messageListRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
                 {loading && <p className="text-sm text-text-secondary">Loading conversation...</p>}
 
@@ -114,7 +78,7 @@ export function MessageSellerPanel({ open, onClose, productId }: MessageSellerPa
                         const isMine = message.is_mine;
                         return (
                             <div key={message.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                                <span className="mb-1 text-xs text-text-secondary">{isMine ? 'You' : 'Seller'}</span>
+                                <span className="mb-1 text-xs text-text-secondary">{isMine ? 'You' : counterpartyUsername}</span>
                                 <p
                                     className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
                                         isMine ? 'bg-accent-purple text-white' : 'bg-dark-200 text-white'
@@ -142,7 +106,7 @@ export function MessageSellerPanel({ open, onClose, productId }: MessageSellerPa
                     variant="primary"
                     size="sm"
                     isLoading={sending}
-                    disabled={!draft.trim() || sending || !conversation}
+                    disabled={!draft.trim() || sending}
                     onClick={handleSend}
                 >
                     Send
@@ -152,4 +116,4 @@ export function MessageSellerPanel({ open, onClose, productId }: MessageSellerPa
     );
 }
 
-export default MessageSellerPanel;
+export default ConversationThreadPanel;

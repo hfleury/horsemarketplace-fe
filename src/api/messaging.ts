@@ -4,6 +4,7 @@ import type {
   CreateConversationRequest,
   ListMessagesResponse,
   Message,
+  PaginatedConversations,
   SendMessageRequest,
 } from '../types/messaging';
 import { apiFetch } from '../lib/apiClient';
@@ -29,5 +30,16 @@ export const messagingApi = {
     return apiFetch<ApiResponse<ListMessagesResponse>>(
       `/conversations/${conversationId}/messages?after_id=${afterId}&limit=${limit}`
     );
+  },
+
+  listConversations(page: number, limit: number) {
+    const qs = new URLSearchParams();
+    qs.set('page', String(page));
+    qs.set('limit', String(limit));
+    return apiFetch<ApiResponse<PaginatedConversations>>(`/conversations?${qs.toString()}`);
+  },
+
+  countUnreadConversations() {
+    return apiFetch<ApiResponse<{ unread_count: number }>>('/conversations/unread-count');
   },
 };

@@ -14,6 +14,7 @@ import { AuthProvider } from './context/AuthContext';
 import CreateProduct from './pages/CreateProduct';
 import { Listings } from './pages/Listings';
 import { ListingDetail } from './pages/ListingDetail';
+import { Inbox } from './pages/Inbox';
 
 function App() {
   return (
@@ -30,6 +31,9 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route element={<ProtectedRoute allowedRoles={['user', 'admin']} />}>
+              <Route path="/inbox" element={<Inbox />} />
+            </Route>
             <Route path="*" element={<div className="container-custom py-20 text-center">Page Not Found</div>} />
             <Route path="*" element={<div className="container-custom py-20 text-center">Page Not Found</div>} />
           </Route>

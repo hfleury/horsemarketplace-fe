@@ -33,6 +33,7 @@ function makeMessage(overrides: Partial<Message> = {}): Message {
         sender_id: 'buyer-1',
         body: 'hello',
         created_at: '2026-01-01T00:00:00Z',
+        is_mine: true,
         ...overrides,
     };
 }
@@ -93,8 +94,8 @@ describe('MessageSellerPanel', () => {
             status: 'success',
             data: {
                 messages: [
-                    makeMessage({ id: 1, sender_id: 'buyer-1', body: 'From buyer' }),
-                    makeMessage({ id: 2, sender_id: 'seller-1', body: 'From seller' }),
+                    makeMessage({ id: 1, sender_id: 'buyer-1', body: 'From buyer', is_mine: true }),
+                    makeMessage({ id: 2, sender_id: 'seller-1', body: 'From seller', is_mine: false }),
                 ],
                 has_more: false,
             },

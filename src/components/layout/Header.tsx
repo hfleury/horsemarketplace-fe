@@ -1,14 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Search, Wallet, User, Menu, X, Sun, Moon } from 'lucide-react';
+import { Search, Wallet, Inbox as InboxIcon, User, Menu, X, Sun, Moon } from 'lucide-react';
 import { Button } from '../common/Button';
+import Badge from '../ui/Badge';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../hooks/useAuth';
+import { usePolling } from '../../hooks/usePolling';
+import { messagingApi } from '../../api/messaging';
+
+const UNREAD_COUNT_POLL_INTERVAL_MS = 20000;
 
 export const Header = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [unreadCount, setUnreadCount] = useState(0);
     const location = useLocation();
     const navigate = useNavigate();
     const { theme, setTheme } = useTheme();
@@ -21,6 +27,20 @@ export const Header = () => {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    const refreshUnreadCount = () => {
+        messagingApi.countUnreadConversations().then((response) => {
+            if (response.status === 'success' && response.data) {
+                setUnreadCount(response.data.unread_count);
+            }
+        });
+    };
+
+    useEffect(() => {
+        if (user) refreshUnreadCount();
+    }, [user]);
+
+    usePolling(refreshUnreadCount, UNREAD_COUNT_POLL_INTERVAL_MS, Boolean(user));
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -85,6 +105,23 @@ export const Header = () => {
                     <Button variant="glass" size="icon" className="rounded-full bg-dark-100 text-text-primary hover:bg-dark-200 border-dark-200">
                         <Wallet className="w-5 h-5" />
                     </Button>
+
+                    {user && (
+                        <Link to="/inbox" className="relative" aria-label="Inbox">
+                            <Button variant="glass" size="icon" className="rounded-full bg-dark-100 text-text-primary hover:bg-dark-200 border-dark-200">
+                                <InboxIcon className="w-5 h-5" />
+                            </Button>
+                            {unreadCount > 0 && (
+                                <Badge
+                                    variant="error"
+                                    size="sm"
+                                    className="absolute -top-1 -right-1 min-w-[1.25rem] justify-center px-1"
+                                >
+                                    {unreadCount}
+                                </Badge>
+                            )}
+                        </Link>
+                    )}
 
                     {user ? (
                         <div className="relative group">
@@ -191,6 +228,14 @@ export const Header = () => {
                         {user && (
                             <>
                                 <div className="h-px bg-dark-200 my-2"></div>
+                                <Link to="/inbox" className="flex items-center gap-2 text-lg font-bold text-text-secondary hover:text-text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+                                    Inbox
+                                    {unreadCount > 0 && (
+                                        <Badge variant="error" size="sm">
+                                            {unreadCount}
+                                        </Badge>
+                                    )}
+                                </Link>
                                 <Link to="/profile" className="text-lg font-bold text-text-secondary hover:text-text-primary" onClick={() => setIsMobileMenuOpen(false)}>
                                     Profile
                                 </Link>
