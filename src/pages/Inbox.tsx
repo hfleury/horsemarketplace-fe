@@ -8,10 +8,16 @@ import type { ConversationSummary } from '../types/messaging';
 
 const LIMIT = 20;
 
+const ROLE_FILTER_TABS: { value: 'all' | 'seller'; label: string }[] = [
+    { value: 'all', label: 'All conversations' },
+    { value: 'seller', label: 'Messages about my listings' },
+];
+
 export const Inbox = () => {
     const [conversations, setConversations] = useState<ConversationSummary[]>([]);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
+    const [roleFilter, setRoleFilter] = useState<'all' | 'seller'>('all');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [expandedConversationId, setExpandedConversationId] = useState<string | null>(null);
@@ -21,7 +27,11 @@ export const Inbox = () => {
             try {
                 setLoading(true);
                 setError(null);
-                const response = await messagingApi.listConversations(page, LIMIT);
+                const response = await messagingApi.listConversations(
+                    page,
+                    LIMIT,
+                    roleFilter === 'seller' ? 'seller' : undefined
+                );
                 if (response.status === 'success' && response.data) {
                     setConversations(response.data.items ?? []);
                     setTotal(response.data.total);
@@ -36,7 +46,12 @@ export const Inbox = () => {
         };
 
         fetchConversations();
-    }, [page]);
+    }, [page, roleFilter]);
+
+    const handleSelectRoleFilter = (value: 'all' | 'seller') => {
+        setRoleFilter(value);
+        setPage(1);
+    };
 
     const handleToggleConversation = (conversationId: string) => {
         setExpandedConversationId((current) => (current === conversationId ? null : conversationId));
@@ -54,6 +69,21 @@ export const Inbox = () => {
         <section className="py-24 px-6 md:px-12 bg-background">
             <div className="container-custom">
                 <SectionHeader title="Inbox" subtitle="Your conversations with buyers and sellers" />
+
+                <div className="mb-6 flex gap-2 border-b border-dark-200">
+                    {ROLE_FILTER_TABS.map((tab) => (
+                        <button
+                            key={tab.value}
+                            onClick={() => handleSelectRoleFilter(tab.value)}
+                            className={`px-4 py-2 font-medium ${roleFilter === tab.value
+                                ? 'border-b-2 border-primary text-primary'
+                                : 'text-text-secondary'
+                                }`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
 
                 {error && (
                     <div className="mb-8 text-center text-red-500 bg-red-100 p-3 rounded">{error}</div>
