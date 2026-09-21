@@ -32,10 +32,13 @@ export const messagingApi = {
     );
   },
 
-  listConversations(page: number, limit: number) {
+  listConversations(page: number, limit: number, role?: string) {
     const qs = new URLSearchParams();
     qs.set('page', String(page));
     qs.set('limit', String(limit));
+    if (role) {
+      qs.set('role', role);
+    }
     return apiFetch<ApiResponse<PaginatedConversations>>(`/conversations?${qs.toString()}`);
   },
 
