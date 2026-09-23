@@ -15,6 +15,7 @@ import CreateProduct from './pages/CreateProduct';
 import { Listings } from './pages/Listings';
 import { ListingDetail } from './pages/ListingDetail';
 import { Inbox } from './pages/Inbox';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route element={<ProtectedRoute allowedRoles={['user', 'admin']} />}>
               <Route path="/inbox" element={<Inbox />} />
             </Route>
