@@ -211,7 +211,10 @@ describe('Listings', () => {
     });
 
     it('debounces keyword input changes before re-fetching, and resets to page 1', async () => {
-        vi.useFakeTimers({ shouldAdvanceTime: true });
+        // Deliberately real timers, not vi.useFakeTimers: mixing fake timers with RTL's
+        // (or even vi's) waitFor proved unreliable under CI's scheduling here across several
+        // attempts. A real ~400ms wait is slower but fully deterministic, and matches every
+        // other (never-flaky) test in this file.
         vi.mocked(productsApi.list).mockResolvedValue({
             status: 'success',
             data: { items: [makeProduct()], total: 40, page: 1, limit: 20 },
@@ -234,14 +237,10 @@ describe('Listings', () => {
 
         fireEvent.change(screen.getByLabelText('Keyword'), { target: { value: 'stockholm' } });
 
-        // vi.waitFor (not RTL's waitFor) so the 400ms debounce reliably advances via fake
-        // timers rather than racing against real wall-clock time under shouldAdvanceTime.
-        await vi.waitFor(
+        await waitFor(
             () =>
                 expect(productsApi.list).toHaveBeenCalledWith({ categoryId: undefined, page: 1, limit: 20, q: 'stockholm' }),
-            { timeout: 1000 }
+            { timeout: 2000 }
         );
-
-        vi.useRealTimers();
     });
 });
