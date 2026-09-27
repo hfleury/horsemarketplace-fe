@@ -5,6 +5,7 @@ import { Listings } from './Listings';
 import { productsApi } from '../api/products';
 import { categoriesApi } from '../api/categories';
 import { geocodingApi } from '../api/geocoding';
+import { horseAttributesApi } from '../api/horseAttributesApi';
 import { ProductStatus, ProductType, type Product } from '../types/product';
 
 vi.mock('../api/products', () => ({
@@ -17,6 +18,10 @@ vi.mock('../api/categories', () => ({
 
 vi.mock('../api/geocoding', () => ({
     geocodingApi: { resolve: vi.fn() },
+}));
+
+vi.mock('../api/horseAttributesApi', () => ({
+    horseAttributesApi: { list: vi.fn() },
 }));
 
 function makeProduct(overrides: Partial<Product> = {}): Product {
@@ -40,10 +45,14 @@ describe('Listings', () => {
         vi.mocked(productsApi.list).mockReset();
         vi.mocked(categoriesApi.list).mockReset();
         vi.mocked(geocodingApi.resolve).mockReset();
+        vi.mocked(horseAttributesApi.list).mockReset();
         vi.mocked(categoriesApi.list).mockResolvedValue({
             status: 'success',
             data: [{ id: 'cat-1', name: 'Horses' }],
         });
+        // Unmocked, this hits the real apiClient (no backend in tests), with timing that
+        // varies enough between local and CI to bleed into other tests' assertions.
+        vi.mocked(horseAttributesApi.list).mockResolvedValue({ status: 'success', data: [] });
     });
 
     it('shows a loading state then renders listing cards once resolved', async () => {
@@ -202,7 +211,10 @@ describe('Listings', () => {
     });
 
     it('debounces keyword input changes before re-fetching, and resets to page 1', async () => {
-        vi.useFakeTimers({ shouldAdvanceTime: true });
+        // Deliberately real timers, not vi.useFakeTimers: mixing fake timers with RTL's
+        // (or even vi's) waitFor proved unreliable under CI's scheduling here across several
+        // attempts. A real ~400ms wait is slower but fully deterministic, and matches every
+        // other (never-flaky) test in this file.
         vi.mocked(productsApi.list).mockResolvedValue({
             status: 'success',
             data: { items: [makeProduct()], total: 40, page: 1, limit: 20 },
@@ -225,12 +237,10 @@ describe('Listings', () => {
 
         fireEvent.change(screen.getByLabelText('Keyword'), { target: { value: 'stockholm' } });
 
-        await vi.advanceTimersByTimeAsync(400);
-
-        await waitFor(() =>
-            expect(productsApi.list).toHaveBeenCalledWith({ categoryId: undefined, page: 1, limit: 20, q: 'stockholm' })
+        await waitFor(
+            () =>
+                expect(productsApi.list).toHaveBeenCalledWith({ categoryId: undefined, page: 1, limit: 20, q: 'stockholm' }),
+            { timeout: 2000 }
         );
-
-        vi.useRealTimers();
     });
 });
