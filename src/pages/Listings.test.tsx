@@ -225,10 +225,12 @@ describe('Listings', () => {
 
         fireEvent.change(screen.getByLabelText('Keyword'), { target: { value: 'stockholm' } });
 
-        await vi.advanceTimersByTimeAsync(400);
-
-        await waitFor(() =>
-            expect(productsApi.list).toHaveBeenCalledWith({ categoryId: undefined, page: 1, limit: 20, q: 'stockholm' })
+        // vi.waitFor (not RTL's waitFor) so the 400ms debounce reliably advances via fake
+        // timers rather than racing against real wall-clock time under shouldAdvanceTime.
+        await vi.waitFor(
+            () =>
+                expect(productsApi.list).toHaveBeenCalledWith({ categoryId: undefined, page: 1, limit: 20, q: 'stockholm' }),
+            { timeout: 1000 }
         );
 
         vi.useRealTimers();
