@@ -71,3 +71,14 @@ export default defineConfig([
   },
 ])
 ```
+
+## Releasing to production
+
+Merging to `main` runs CI only. Production is deployed by publishing a GitHub Release:
+
+1. On GitHub, go to **Releases → Draft a new release**.
+2. Create a new tag on `main` using SemVer (`v0.1.0`, `v0.2.0`, `v0.2.1`, …): minor for new features, patch for fixes only.
+3. Click **Generate release notes**. This lists every PR merged since the previous release, and PR titles start with the Jira key (`HM-xx: …`). Edit the notes if needed; this is what goes to QA.
+4. Click **Publish release**. The `CD` workflow re-runs CI on the tagged commit, pushes `ghcr.io/hfleury/horsemarketplace-fe:<tag>` and `:latest`, and restarts only the `frontend` container on the Droplet.
+
+Frontend and backend are versioned and released independently. A backend release also re-pulls `horsemarketplace-fe:latest`, which is always the last *released* frontend.
