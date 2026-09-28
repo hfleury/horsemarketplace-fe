@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Eye, Heart, Copy, Check, Flag, MessageCircle } from 'lucide-react';
+import { Eye, Heart, Copy, Check, Flag, MessageCircle, Phone } from 'lucide-react';
 import { productsApi } from '../api/products';
 import { formatPrice } from '../lib/formatPrice';
 import { formatCount } from '../lib/pluralize';
@@ -10,6 +10,7 @@ import { SectionHeader } from '../components/common/SectionHeader';
 import IconButton from '../components/ui/IconButton';
 import { ReportListingDialog } from '../components/products/ReportListingDialog';
 import { MessageSellerPanel } from '../components/products/MessageSellerPanel';
+import { CallbackRequestDialog } from '../components/products/CallbackRequestDialog';
 import { useAuth } from '../hooks/useAuth';
 import { ProductType, type Product } from '../types/product';
 
@@ -100,6 +101,7 @@ export function ListingDetail() {
     const [relatedListings, setRelatedListings] = useState<Product[]>([]);
     const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
     const [isMessagePanelOpen, setIsMessagePanelOpen] = useState(false);
+    const [isCallbackDialogOpen, setIsCallbackDialogOpen] = useState(false);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -186,6 +188,13 @@ export function ListingDetail() {
                                             size="sm"
                                             onClick={() => setIsReportDialogOpen(true)}
                                         />
+                                        <IconButton
+                                            icon={<Phone className="h-4 w-4" />}
+                                            ariaLabel="Request call"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setIsCallbackDialogOpen(true)}
+                                        />
                                     </>
                                 )}
                             </div>
@@ -247,6 +256,12 @@ export function ListingDetail() {
                         <MessageSellerPanel
                             open={isMessagePanelOpen}
                             onClose={() => setIsMessagePanelOpen(false)}
+                            productId={product.id}
+                        />
+
+                        <CallbackRequestDialog
+                            open={isCallbackDialogOpen}
+                            onClose={() => setIsCallbackDialogOpen(false)}
                             productId={product.id}
                         />
                     </>
