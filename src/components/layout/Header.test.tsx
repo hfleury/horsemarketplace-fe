@@ -109,3 +109,37 @@ describe('Header logged-in', () => {
         expect(screen.queryByText('0')).not.toBeInTheDocument();
     });
 });
+
+describe('Header favorites link', () => {
+    beforeEach(() => {
+        vi.mocked(messagingApi.countUnreadConversations).mockReset().mockResolvedValue({
+            status: 'success',
+            data: { unread_count: 0 },
+        });
+    });
+
+    it('links to /favorites when logged in', async () => {
+        mockUser = { username: 'alice', email: 'alice@example.com', role: 'user' };
+
+        render(
+            <MemoryRouter>
+                <Header />
+            </MemoryRouter>
+        );
+
+        await waitFor(() => expect(messagingApi.countUnreadConversations).toHaveBeenCalled());
+        expect(screen.getByRole('link', { name: 'My Favorites' })).toHaveAttribute('href', '/favorites');
+    });
+
+    it('renders no favorites link when logged out', () => {
+        mockUser = null;
+
+        render(
+            <MemoryRouter>
+                <Header />
+            </MemoryRouter>
+        );
+
+        expect(screen.queryByRole('link', { name: 'My Favorites' })).not.toBeInTheDocument();
+    });
+});

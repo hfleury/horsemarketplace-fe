@@ -125,4 +125,32 @@ describe('ListingCard', () => {
         expect(container.querySelector('img')).not.toBeInTheDocument();
         expect(container.querySelector('.bg-dark-100\\/50')).toBeInTheDocument();
     });
+
+    it('shows a "Sold" badge for a sold listing', () => {
+        render(
+            <MemoryRouter>
+                <ListingCard product={{ ...baseProduct, status: ProductStatus.Sold }} />
+            </MemoryRouter>
+        );
+        expect(screen.getByText('Sold')).toBeInTheDocument();
+    });
+
+    it('shows an "Unavailable" badge for an archived listing', () => {
+        render(
+            <MemoryRouter>
+                <ListingCard product={{ ...baseProduct, status: ProductStatus.Archived }} />
+            </MemoryRouter>
+        );
+        expect(screen.getByText('Unavailable')).toBeInTheDocument();
+    });
+
+    it('shows no status badge for a published listing', () => {
+        render(
+            <MemoryRouter>
+                <ListingCard product={baseProduct} />
+            </MemoryRouter>
+        );
+        expect(screen.queryByText('Sold')).not.toBeInTheDocument();
+        expect(screen.queryByText('Unavailable')).not.toBeInTheDocument();
+    });
 });
