@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Wallet, Inbox as InboxIcon, User, Menu, X, Sun, Moon } from 'lucide-react';
+import { Search, Wallet, Inbox as InboxIcon, Heart, User, Menu, X, Sun, Moon } from 'lucide-react';
 import { Button } from '../common/Button';
 import Badge from '../ui/Badge';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -105,6 +105,14 @@ export const Header = () => {
                     <Button variant="glass" size="icon" className="rounded-full bg-dark-100 text-text-primary hover:bg-dark-200 border-dark-200">
                         <Wallet className="w-5 h-5" />
                     </Button>
+
+                    {user && (
+                        <Link to="/favorites" aria-label="My Favorites">
+                            <Button variant="glass" size="icon" className="rounded-full bg-dark-100 text-text-primary hover:bg-dark-200 border-dark-200">
+                                <Heart className="w-5 h-5" />
+                            </Button>
+                        </Link>
+                    )}
 
                     {user && (
                         <Link to="/inbox" className="relative" aria-label="Inbox">
@@ -228,6 +236,9 @@ export const Header = () => {
                         {user && (
                             <>
                                 <div className="h-px bg-dark-200 my-2"></div>
+                                <Link to="/favorites" className="text-lg font-bold text-text-secondary hover:text-text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+                                    My Favorites
+                                </Link>
                                 <Link to="/inbox" className="flex items-center gap-2 text-lg font-bold text-text-secondary hover:text-text-primary" onClick={() => setIsMobileMenuOpen(false)}>
                                     Inbox
                                     {unreadCount > 0 && (
