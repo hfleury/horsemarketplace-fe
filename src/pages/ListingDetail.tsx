@@ -11,6 +11,7 @@ import IconButton from '../components/ui/IconButton';
 import { ReportListingDialog } from '../components/products/ReportListingDialog';
 import { MessageSellerPanel } from '../components/products/MessageSellerPanel';
 import { CallbackRequestDialog } from '../components/products/CallbackRequestDialog';
+import { FavoriteButton } from '../components/products/FavoriteButton';
 import { useAuth } from '../hooks/useAuth';
 import { ProductType, type Product } from '../types/product';
 
@@ -152,6 +153,15 @@ export function ListingDetail() {
         }
     }
 
+    function handleFavoriteToggled(favorited: boolean) {
+        setProduct((previous) =>
+            previous && {
+                ...previous,
+                favorite_count: Math.max(0, previous.favorite_count + (favorited ? 1 : -1)),
+            }
+        );
+    }
+
     return (
         <section className="py-24 px-6 md:px-12 bg-background">
             <div className="container-custom">
@@ -229,7 +239,11 @@ export function ListingDetail() {
                                         {formatCount(product.views_count, 'view', 'views')}
                                     </span>
                                     <span className="flex items-center gap-1.5">
-                                        <Heart className="h-4 w-4" />
+                                        <FavoriteButton
+                                            product={product}
+                                            fallback={<Heart className="h-4 w-4" />}
+                                            onToggled={handleFavoriteToggled}
+                                        />
                                         {formatCount(product.favorite_count, 'favorite', 'favorites')}
                                     </span>
                                 </div>

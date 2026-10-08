@@ -3,11 +3,17 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { ListingDetail } from './ListingDetail';
 import { productsApi } from '../api/products';
+import { favoritesApi } from '../api/favorites';
+import { FavoritesProvider } from '../context/FavoritesContext';
 import { useAuth } from '../hooks/useAuth';
 import { ProductStatus, ProductType, type Product } from '../types/product';
 
 vi.mock('../api/products', () => ({
     productsApi: { getById: vi.fn(), getSimilar: vi.fn() },
+}));
+
+vi.mock('../api/favorites', () => ({
+    favoritesApi: { listIds: vi.fn(), add: vi.fn(), remove: vi.fn() },
 }));
 
 vi.mock('../hooks/useAuth', () => ({ useAuth: vi.fn() }));
@@ -323,6 +329,44 @@ describe('ListingDetail', () => {
 
                 expect(screen.getByTestId('message-seller-panel')).toBeInTheDocument();
             });
+        });
+    });
+
+    describe('favorite toggle', () => {
+        it('increments the favorite count after adding the listing to favorites', async () => {
+            vi.mocked(useAuth).mockReturnValue({
+                user: { username: 'alice', email: 'alice@example.com' },
+                token: 'token123',
+                login: vi.fn(),
+                logout: vi.fn(),
+                loading: false,
+                error: null,
+            });
+            vi.mocked(favoritesApi.listIds).mockResolvedValue({ status: 'success', data: [] });
+            vi.mocked(favoritesApi.add).mockResolvedValue({
+                status: 'success',
+                data: { product_id: 'p1', favorited: true },
+            });
+            vi.mocked(productsApi.getById).mockResolvedValue({
+                status: 'success',
+                data: makeProduct(),
+            });
+
+            render(
+                <FavoritesProvider>
+                    <MemoryRouter initialEntries={['/listings/p1']}>
+                        <Routes>
+                            <Route path="/listings/:id" element={<ListingDetail />} />
+                        </Routes>
+                    </MemoryRouter>
+                </FavoritesProvider>
+            );
+
+            await waitFor(() => expect(screen.getByText('5 favorites')).toBeInTheDocument());
+            fireEvent.click(screen.getByRole('button', { name: /add to favorites/i }));
+
+            await waitFor(() => expect(screen.getByText('6 favorites')).toBeInTheDocument());
+            expect(favoritesApi.add).toHaveBeenCalledWith('p1');
         });
     });
 });
