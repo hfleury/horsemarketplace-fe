@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Button from '../ui/Button';
 import { SavedSearchFormDialog } from './SavedSearchFormDialog';
 import { useAuth } from '../../hooks/useAuth';
@@ -45,7 +46,14 @@ export function SaveSearchPanel({ criteria, locationLabel, categoryName }: SaveS
                 Save this search
             </Button>
             {saveBlocker && <p className="text-sm text-text-secondary">{saveBlocker}</p>}
-            {showConfirmation && <p className="text-sm text-green-500">Saved "{savedConfirmation.name}".</p>}
+            {showConfirmation && (
+                <p className="text-sm text-green-500">
+                    Saved "{savedConfirmation.name}".{' '}
+                    <Link to="/saved-searches" className="font-bold underline hover:text-green-400">
+                        View my saved searches
+                    </Link>
+                </p>
+            )}
 
             <SavedSearchFormDialog
                 open={isDialogOpen}

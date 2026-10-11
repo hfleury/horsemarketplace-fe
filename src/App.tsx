@@ -17,6 +17,7 @@ import { Listings } from './pages/Listings';
 import { ListingDetail } from './pages/ListingDetail';
 import { Inbox } from './pages/Inbox';
 import { Favorites } from './pages/Favorites';
+import { SavedSearches } from './pages/SavedSearches';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
               <Route element={<ProtectedRoute allowedRoles={['user', 'admin']} />}>
                 <Route path="/inbox" element={<Inbox />} />
                 <Route path="/favorites" element={<Favorites />} />
+                <Route path="/saved-searches" element={<SavedSearches />} />
               </Route>
               <Route path="*" element={<div className="container-custom py-20 text-center">Page Not Found</div>} />
               <Route path="*" element={<div className="container-custom py-20 text-center">Page Not Found</div>} />

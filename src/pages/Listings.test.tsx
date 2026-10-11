@@ -566,10 +566,15 @@ describe('Listings', () => {
                     alerts_enabled: true,
                 })
             );
-            expect(await screen.findByText('Saved "Horses".')).toBeInTheDocument();
+            expect(await screen.findByText(/Saved "Horses"\./)).toBeInTheDocument();
+            // findByRole waits out the closing dialog, which aria-hides its siblings during its exit transition.
+            expect(await screen.findByRole('link', { name: 'View my saved searches' })).toHaveAttribute(
+                'href',
+                '/saved-searches'
+            );
 
             await chooseCategory('');
-            await waitFor(() => expect(screen.queryByText('Saved "Horses".')).not.toBeInTheDocument());
+            await waitFor(() => expect(screen.queryByText(/Saved "Horses"\./)).not.toBeInTheDocument());
         });
 
         it('sends the location label with a location', async () => {
