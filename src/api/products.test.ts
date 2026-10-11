@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { productsApi } from './products';
 import { apiFetch } from '../lib/apiClient';
+import type { SearchCriteria } from '../types/searchCriteria';
 
 vi.mock('../lib/apiClient', () => ({
   apiFetch: vi.fn(),
@@ -17,21 +18,21 @@ describe('productsApi.list', () => {
     expect(apiFetch).toHaveBeenCalledWith('/products');
   });
 
-  it('includes only category_id when only categoryId is given', async () => {
-    await productsApi.list({ categoryId: 'cat-1' });
+  it('includes only category_id when only category_id is given', async () => {
+    await productsApi.list({ category_id: 'cat-1' });
     expect(apiFetch).toHaveBeenCalledWith('/products?category_id=cat-1');
   });
 
-  it('includes all params when categoryId, page, and limit are given', async () => {
-    await productsApi.list({ categoryId: 'cat-1', page: 2, limit: 10 });
+  it('includes all params when category_id, page, and limit are given', async () => {
+    await productsApi.list({ category_id: 'cat-1' }, { page: 2, limit: 10 });
     const [endpoint] = vi.mocked(apiFetch).mock.calls[0];
     expect(endpoint).toContain('category_id=cat-1');
     expect(endpoint).toContain('page=2');
     expect(endpoint).toContain('limit=10');
   });
 
-  it('maps lat/lng/radiusKm to lat/lng/radius_km query params', async () => {
-    await productsApi.list({ lat: 59.3293, lng: 18.0686, radiusKm: 50 });
+  it('sends lat/lng/radius_km query params', async () => {
+    await productsApi.list({ lat: 59.3293, lng: 18.0686, radius_km: 50 });
     const [endpoint] = vi.mocked(apiFetch).mock.calls[0];
     expect(endpoint).toContain('lat=59.3293');
     expect(endpoint).toContain('lng=18.0686');
@@ -54,6 +55,65 @@ describe('productsApi.list', () => {
     await productsApi.list({ q: '' });
     const [endpoint] = vi.mocked(apiFetch).mock.calls[0];
     expect(endpoint).not.toContain('q=');
+  });
+
+  // Guards the contract with horsemarketplacebk's internal/products/handlers/http.go query names.
+  it.each<[string, SearchCriteria, string]>([
+    ['q', { q: 'saddle' }, 'q=saddle'],
+    ['category_id', { category_id: 'cat-1' }, 'category_id=cat-1'],
+    ['breed', { breed: 'Arabian' }, 'breed=Arabian'],
+    ['gender', { gender: 'Mare' }, 'gender=Mare'],
+    ['discipline', { discipline: 'Dressage' }, 'discipline=Dressage'],
+    ['min_age', { min_age: 3 }, 'min_age=3'],
+    ['max_age', { max_age: 8 }, 'max_age=8'],
+    ['min_height', { min_height: 150 }, 'min_height=150'],
+    ['max_height', { max_height: 170 }, 'max_height=170'],
+    ['min_price', { min_price: 1000 }, 'min_price=1000'],
+    ['max_price', { max_price: 5000 }, 'max_price=5000'],
+    ['lat', { lat: 59.3, lng: 18.1, radius_km: 50 }, 'lat=59.3'],
+    ['lng', { lat: 59.3, lng: 18.1, radius_km: 50 }, 'lng=18.1'],
+    ['radius_km', { lat: 59.3, lng: 18.1, radius_km: 50 }, 'radius_km=50'],
+  ])('sends %s under its backend name', async (_key, criteria, expected) => {
+    await productsApi.list(criteria);
+    const [endpoint] = vi.mocked(apiFetch).mock.calls[0];
+    expect(endpoint).toContain(expected);
+  });
+
+  it('builds one exact URL from full criteria and pagination', async () => {
+    await productsApi.list(
+      {
+        q: 'saddle',
+        category_id: 'cat-1',
+        breed: 'Arabian',
+        gender: 'Mare',
+        discipline: 'Dressage',
+        min_age: 3,
+        max_age: 8,
+        min_height: 150,
+        max_height: 170,
+        min_price: 1000,
+        max_price: 5000,
+        lat: 59.3,
+        lng: 18.1,
+        radius_km: 50,
+      },
+      { page: 3, limit: 20 }
+    );
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/products?q=saddle&category_id=cat-1&breed=Arabian&gender=Mare&discipline=Dressage' +
+        '&min_age=3&max_age=8&min_height=150&max_height=170&min_price=1000&max_price=5000' +
+        '&lat=59.3&lng=18.1&radius_km=50&page=3&limit=20'
+    );
+  });
+
+  it.each([undefined, 0])('omits page and limit when they are %s', async (value) => {
+    await productsApi.list({ breed: 'Arabian' }, { page: value, limit: value });
+    expect(apiFetch).toHaveBeenCalledWith('/products?breed=Arabian');
+  });
+
+  it('sends a zero price', async () => {
+    await productsApi.list({ min_price: 0 });
+    expect(apiFetch).toHaveBeenCalledWith('/products?min_price=0');
   });
 });
 
