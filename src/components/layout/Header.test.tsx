@@ -143,3 +143,37 @@ describe('Header favorites link', () => {
         expect(screen.queryByRole('link', { name: 'My Favorites' })).not.toBeInTheDocument();
     });
 });
+
+describe('Header saved searches link', () => {
+    beforeEach(() => {
+        vi.mocked(messagingApi.countUnreadConversations).mockReset().mockResolvedValue({
+            status: 'success',
+            data: { unread_count: 0 },
+        });
+    });
+
+    it('links to /saved-searches when logged in', async () => {
+        mockUser = { username: 'alice', email: 'alice@example.com', role: 'user' };
+
+        render(
+            <MemoryRouter>
+                <Header />
+            </MemoryRouter>
+        );
+
+        await waitFor(() => expect(messagingApi.countUnreadConversations).toHaveBeenCalled());
+        expect(screen.getByRole('link', { name: 'My saved searches' })).toHaveAttribute('href', '/saved-searches');
+    });
+
+    it('renders no saved searches link when logged out', () => {
+        mockUser = null;
+
+        render(
+            <MemoryRouter>
+                <Header />
+            </MemoryRouter>
+        );
+
+        expect(screen.queryByRole('link', { name: 'My saved searches' })).not.toBeInTheDocument();
+    });
+});

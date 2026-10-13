@@ -1,24 +1,46 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { productsApi } from '../api/products';
 import { categoriesApi } from '../api/categories';
 import { geocodingApi } from '../api/geocoding';
 import { getCurrentPosition } from '../lib/geolocation';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
+import { useUrlDraft } from '../hooks/useUrlDraft';
 import { horseAttributesApi } from '../api/horseAttributesApi';
+import { RADIUS_OPTIONS_KM, type RangeCriteriaKey } from '../lib/searchCriteria/queryParams';
+import { buildListingsSearchParams, parseListingsSearchParams } from '../lib/searchCriteria/listingsUrl';
 import type { Product } from '../types/product';
 import type { Category } from '../types/categories';
 import type { HorseAttributeOption } from '../types/horseAttributes';
+import type { SearchCriteria } from '../types/searchCriteria';
 import { ListingCard } from '../components/products/ListingCard';
 import { SectionHeader } from '../components/common/SectionHeader';
+import { SaveSearchPanel } from '../components/savedSearches/SaveSearchPanel';
 import Button from '../components/ui/Button';
 
 const LIMIT = 20;
-const RADIUS_OPTIONS_KM = [10, 25, 50, 100, 250, 500];
+const MAX_LOCATION_LABEL_LENGTH = 100;
 
 interface FlatCategory extends Category {
     depth: number;
 }
+
+type Coordinates = { lat: number; lng: number };
+
+interface LocationDraft {
+    text: string;
+    origin?: Coordinates;
+}
+
+type SelectCriteriaKey = 'category_id' | 'breed' | 'gender' | 'discipline';
+
+type LocationCriteria = Pick<SearchCriteria, 'lat' | 'lng' | 'radius_km'>;
+
+const NO_LOCATION: LocationCriteria = {
+    lat: undefined,
+    lng: undefined,
+    radius_km: undefined,
+};
 
 function flattenCategories(cats: Category[], depth = 0): FlatCategory[] {
     return cats.reduce((acc, cat) => {
@@ -30,26 +52,42 @@ function flattenCategories(cats: Category[], depth = 0): FlatCategory[] {
     }, [] as FlatCategory[]);
 }
 
+function sameLocationDraft(a: LocationDraft, b: LocationDraft): boolean {
+    return a.text === b.text && a.origin?.lat === b.origin?.lat && a.origin?.lng === b.origin?.lng;
+}
+
+function toLocationLabel(text: string): string | undefined {
+    return text.trim().slice(0, MAX_LOCATION_LABEL_LENGTH) || undefined;
+}
+
 export const Listings = () => {
     const [searchParams, setSearchParams] = useSearchParams();
-    const [keyword, setKeyword] = useState(() => searchParams.get('q') ?? '');
+    const {
+        criteria: appliedCriteria,
+        locationLabel: appliedLocationLabel,
+        page,
+    } = useMemo(() => parseListingsSearchParams(searchParams), [searchParams]);
+
+    const {
+        draft: keyword,
+        setDraft: setKeyword,
+        markCommitted: markKeywordCommitted,
+    } = useUrlDraft(appliedCriteria.q ?? '');
     const debouncedKeyword = useDebouncedValue(keyword, 400);
+
+    const appliedOrigin =
+        appliedCriteria.lat !== undefined && appliedCriteria.lng !== undefined
+            ? { lat: appliedCriteria.lat, lng: appliedCriteria.lng }
+            : undefined;
+    const {
+        draft: locationDraft,
+        setDraft: setLocationDraft,
+        markCommitted: markLocationCommitted,
+    } = useUrlDraft<LocationDraft>({ text: appliedLocationLabel ?? '', origin: appliedOrigin }, sameLocationDraft);
 
     const [products, setProducts] = useState<Product[]>([]);
     const [total, setTotal] = useState(0);
-    const [page, setPage] = useState(1);
-    const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
     const [categories, setCategories] = useState<FlatCategory[]>([]);
-
-    const [breed, setBreed] = useState<string | undefined>(undefined);
-    const [gender, setGender] = useState<string | undefined>(undefined);
-    const [discipline, setDiscipline] = useState<string | undefined>(undefined);
-    const [minAge, setMinAge] = useState<number | undefined>(undefined);
-    const [maxAge, setMaxAge] = useState<number | undefined>(undefined);
-    const [minHeight, setMinHeight] = useState<number | undefined>(undefined);
-    const [maxHeight, setMaxHeight] = useState<number | undefined>(undefined);
-    const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
-    const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
 
     const [breedOptions, setBreedOptions] = useState<HorseAttributeOption[]>([]);
     const [genderOptions, setGenderOptions] = useState<HorseAttributeOption[]>([]);
@@ -58,9 +96,6 @@ export const Listings = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const [locationQuery, setLocationQuery] = useState('');
-    const [originCoords, setOriginCoords] = useState<{ lat: number; lng: number } | undefined>(undefined);
-    const [radiusKm, setRadiusKm] = useState<number | undefined>(undefined);
     const [locationLoading, setLocationLoading] = useState(false);
     const [locationWarning, setLocationWarning] = useState<string | null>(null);
 
@@ -108,35 +143,11 @@ export const Listings = () => {
     }, []);
 
     useEffect(() => {
-        setSearchParams(debouncedKeyword ? { q: debouncedKeyword } : {}, { replace: true });
-    }, [debouncedKeyword, setSearchParams]);
-
-    useEffect(() => {
         const fetchProducts = async () => {
             try {
                 setLoading(true);
                 setError(null);
-                const hasLocationFilter = originCoords !== undefined && radiusKm !== undefined;
-                const response = await productsApi.list({
-                    categoryId,
-                    breed,
-                    gender,
-                    discipline,
-                    minAge,
-                    maxAge,
-                    minHeight,
-                    maxHeight,
-                    minPrice,
-                    maxPrice,
-                    page,
-                    limit: LIMIT,
-                    q: debouncedKeyword,
-                    ...(hasLocationFilter && {
-                        lat: originCoords.lat,
-                        lng: originCoords.lng,
-                        radiusKm,
-                    }),
-                });
+                const response = await productsApi.list(appliedCriteria, { page, limit: LIMIT });
                 if (response.status === 'success' && response.data) {
                     setProducts(response.data.items ?? []);
                     setTotal(response.data.total);
@@ -151,63 +162,62 @@ export const Listings = () => {
         };
 
         fetchProducts();
-    }, [
-        categoryId,
-        breed,
-        gender,
-        discipline,
-        minAge,
-        maxAge,
-        minHeight,
-        maxHeight,
-        minPrice,
-        maxPrice,
-        page,
-        originCoords,
-        radiusKm,
-        debouncedKeyword,
-    ]);
+    }, [appliedCriteria, page]);
 
-    const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setCategoryId(e.target.value === '' ? undefined : e.target.value);
-        setPage(1);
+    const writeSearch = (criteria: SearchCriteria, locationLabel: string | undefined, nextPage = 1) => {
+        setSearchParams(buildListingsSearchParams({ criteria, locationLabel, page: nextPage }), { replace: true });
     };
 
-    const handleBreedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setBreed(e.target.value === '' ? undefined : e.target.value);
-        setPage(1);
+    // Omitting the page resets to page 1 on every filter change.
+    const applyFilters = (changes: Partial<SearchCriteria>) => {
+        writeSearch({ ...appliedCriteria, ...changes }, appliedLocationLabel);
     };
 
-    const handleGenderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setGender(e.target.value === '' ? undefined : e.target.value);
-        setPage(1);
+    const applyLocationFilter = (location: LocationCriteria, locationLabel: string | undefined) => {
+        writeSearch({ ...appliedCriteria, ...location }, locationLabel);
     };
 
-    const handleDisciplineChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setDiscipline(e.target.value === '' ? undefined : e.target.value);
-        setPage(1);
+    const goToPage = (nextPage: number) => {
+        writeSearch(appliedCriteria, appliedLocationLabel, nextPage);
     };
 
-    const handleNumericFilterChange = (setter: (value: number | undefined) => void) =>
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            setter(e.target.value === '' ? undefined : Number(e.target.value));
-            setPage(1);
-        };
+    // Runs only when the debounced text changes; adding appliedCriteria.q would overwrite a Header search with stale text.
+    useEffect(() => {
+        const committedKeyword = debouncedKeyword.trim();
+        if (committedKeyword === (appliedCriteria.q ?? '')) return;
+        markKeywordCommitted(committedKeyword);
+        applyFilters({ q: committedKeyword || undefined });
+    }, [debouncedKeyword]);
 
-    const handleKeywordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setKeyword(e.target.value);
-        setPage(1);
+    const applyLocation = (draft: LocationDraft, radiusKm: number) => {
+        if (!draft.origin) return;
+        const locationLabel = toLocationLabel(draft.text);
+        markLocationCommitted({ text: locationLabel ?? '', origin: draft.origin });
+        applyLocationFilter({ lat: draft.origin.lat, lng: draft.origin.lng, radius_km: radiusKm }, locationLabel);
+    };
+
+    const adoptOrigin = (draft: LocationDraft) => {
+        setLocationDraft(draft);
+        if (appliedCriteria.radius_km !== undefined) applyLocation(draft, appliedCriteria.radius_km);
+    };
+
+    const handleSelectFilterChange = (key: SelectCriteriaKey) => (e: React.ChangeEvent<HTMLSelectElement>) => {
+        applyFilters({ [key]: e.target.value || undefined });
+    };
+
+    const handleNumericFilterChange = (key: RangeCriteriaKey) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        applyFilters({ [key]: e.target.value === '' ? undefined : Number(e.target.value) });
     };
 
     const handleLocationBlur = async () => {
-        if (!locationQuery.trim()) return;
+        const query = locationDraft.text.trim();
+        if (!query) return;
         setLocationLoading(true);
         setLocationWarning(null);
         try {
-            const response = await geocodingApi.resolve(locationQuery.trim());
+            const response = await geocodingApi.resolve(query);
             if (response.status === 'success' && response.data) {
-                setOriginCoords({ lat: response.data.lat, lng: response.data.lng });
-                setPage(1);
+                adoptOrigin({ text: locationDraft.text, origin: { lat: response.data.lat, lng: response.data.lng } });
             } else {
                 setLocationWarning(response.message || "Couldn't find that location — try a different search.");
             }
@@ -223,8 +233,8 @@ export const Listings = () => {
         setLocationWarning(null);
         const position = await getCurrentPosition();
         if (position) {
-            setOriginCoords(position);
-            setPage(1);
+            // Typed text no longer describes the origin, so it must not become the saved location label.
+            adoptOrigin({ text: '', origin: position });
         } else {
             setLocationWarning("Couldn't access your location — try typing one instead.");
         }
@@ -232,8 +242,13 @@ export const Listings = () => {
     };
 
     const handleRadiusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setRadiusKm(e.target.value === '' ? undefined : Number(e.target.value));
-        setPage(1);
+        if (e.target.value === '') {
+            // Keep the draft origin so another radius can be picked without re-entering the location.
+            markLocationCommitted({ text: '', origin: undefined });
+            applyLocationFilter(NO_LOCATION, undefined);
+            return;
+        }
+        applyLocation(locationDraft, Number(e.target.value));
     };
 
     const hasNextPage = page * LIMIT < total;
@@ -247,8 +262,8 @@ export const Listings = () => {
                 <div className="mb-8 flex flex-wrap justify-center gap-4">
                     <select
                         aria-label="Category"
-                        value={categoryId ?? ''}
-                        onChange={handleCategoryChange}
+                        value={appliedCriteria.category_id ?? ''}
+                        onChange={handleSelectFilterChange('category_id')}
                         className="w-full max-w-xs rounded-xl border border-dark-200 bg-white dark:bg-card px-4 py-2 text-text-primary"
                     >
                         <option value="">All Categories</option>
@@ -260,8 +275,9 @@ export const Listings = () => {
                     </select>
 
                     <select
-                        value={breed ?? ''}
-                        onChange={handleBreedChange}
+                        aria-label="Breed"
+                        value={appliedCriteria.breed ?? ''}
+                        onChange={handleSelectFilterChange('breed')}
                         className="w-full max-w-xs rounded-xl border border-dark-200 bg-white dark:bg-card px-4 py-2 text-text-primary"
                     >
                         <option value="">All Breeds</option>
@@ -273,8 +289,9 @@ export const Listings = () => {
                     </select>
 
                     <select
-                        value={gender ?? ''}
-                        onChange={handleGenderChange}
+                        aria-label="Gender"
+                        value={appliedCriteria.gender ?? ''}
+                        onChange={handleSelectFilterChange('gender')}
                         className="w-full max-w-xs rounded-xl border border-dark-200 bg-white dark:bg-card px-4 py-2 text-text-primary"
                     >
                         <option value="">All Genders</option>
@@ -286,8 +303,9 @@ export const Listings = () => {
                     </select>
 
                     <select
-                        value={discipline ?? ''}
-                        onChange={handleDisciplineChange}
+                        aria-label="Discipline"
+                        value={appliedCriteria.discipline ?? ''}
+                        onChange={handleSelectFilterChange('discipline')}
                         className="w-full max-w-xs rounded-xl border border-dark-200 bg-white dark:bg-card px-4 py-2 text-text-primary"
                     >
                         <option value="">All Disciplines</option>
@@ -304,17 +322,19 @@ export const Listings = () => {
                         <label className="text-sm text-text-secondary">Age</label>
                         <input
                             type="number"
+                            aria-label="Min age"
                             placeholder="Min"
-                            value={minAge ?? ''}
-                            onChange={handleNumericFilterChange(setMinAge)}
+                            value={appliedCriteria.min_age ?? ''}
+                            onChange={handleNumericFilterChange('min_age')}
                             className="w-24 rounded-xl border border-dark-200 bg-white dark:bg-card px-3 py-2 text-text-primary"
                         />
                         <span className="text-text-secondary">–</span>
                         <input
                             type="number"
+                            aria-label="Max age"
                             placeholder="Max"
-                            value={maxAge ?? ''}
-                            onChange={handleNumericFilterChange(setMaxAge)}
+                            value={appliedCriteria.max_age ?? ''}
+                            onChange={handleNumericFilterChange('max_age')}
                             className="w-24 rounded-xl border border-dark-200 bg-white dark:bg-card px-3 py-2 text-text-primary"
                         />
                     </div>
@@ -323,17 +343,19 @@ export const Listings = () => {
                         <label className="text-sm text-text-secondary">Height (cm)</label>
                         <input
                             type="number"
+                            aria-label="Min height"
                             placeholder="Min"
-                            value={minHeight ?? ''}
-                            onChange={handleNumericFilterChange(setMinHeight)}
+                            value={appliedCriteria.min_height ?? ''}
+                            onChange={handleNumericFilterChange('min_height')}
                             className="w-24 rounded-xl border border-dark-200 bg-white dark:bg-card px-3 py-2 text-text-primary"
                         />
                         <span className="text-text-secondary">–</span>
                         <input
                             type="number"
+                            aria-label="Max height"
                             placeholder="Max"
-                            value={maxHeight ?? ''}
-                            onChange={handleNumericFilterChange(setMaxHeight)}
+                            value={appliedCriteria.max_height ?? ''}
+                            onChange={handleNumericFilterChange('max_height')}
                             className="w-24 rounded-xl border border-dark-200 bg-white dark:bg-card px-3 py-2 text-text-primary"
                         />
                     </div>
@@ -342,17 +364,19 @@ export const Listings = () => {
                         <label className="text-sm text-text-secondary">Price (SEK)</label>
                         <input
                             type="number"
+                            aria-label="Min price"
                             placeholder="Min"
-                            value={minPrice ?? ''}
-                            onChange={handleNumericFilterChange(setMinPrice)}
+                            value={appliedCriteria.min_price ?? ''}
+                            onChange={handleNumericFilterChange('min_price')}
                             className="w-28 rounded-xl border border-dark-200 bg-white dark:bg-card px-3 py-2 text-text-primary"
                         />
                         <span className="text-text-secondary">–</span>
                         <input
                             type="number"
+                            aria-label="Max price"
                             placeholder="Max"
-                            value={maxPrice ?? ''}
-                            onChange={handleNumericFilterChange(setMaxPrice)}
+                            value={appliedCriteria.max_price ?? ''}
+                            onChange={handleNumericFilterChange('max_price')}
                             className="w-28 rounded-xl border border-dark-200 bg-white dark:bg-card px-3 py-2 text-text-primary"
                         />
                     </div>
@@ -363,15 +387,15 @@ export const Listings = () => {
                         type="text"
                         aria-label="Keyword"
                         value={keyword}
-                        onChange={handleKeywordChange}
+                        onChange={(e) => setKeyword(e.target.value)}
                         placeholder="Search by keyword…"
                         className="w-full max-w-xs rounded-xl border border-dark-200 bg-white dark:bg-card px-4 py-2 text-text-primary"
                     />
                     <input
                         type="text"
                         aria-label="Location"
-                        value={locationQuery}
-                        onChange={(e) => setLocationQuery(e.target.value)}
+                        value={locationDraft.text}
+                        onChange={(e) => setLocationDraft({ ...locationDraft, text: e.target.value })}
                         onBlur={handleLocationBlur}
                         placeholder="Type a location…"
                         className="w-full max-w-xs rounded-xl border border-dark-200 bg-white dark:bg-card px-4 py-2 text-text-primary"
@@ -387,9 +411,9 @@ export const Listings = () => {
                     </Button>
                     <select
                         aria-label="Radius"
-                        value={radiusKm ?? ''}
+                        value={appliedCriteria.radius_km ?? ''}
                         onChange={handleRadiusChange}
-                        disabled={!originCoords}
+                        disabled={!locationDraft.origin}
                         className="rounded-xl border border-dark-200 bg-white dark:bg-card px-4 py-2 text-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <option value="">Radius</option>
@@ -400,6 +424,12 @@ export const Listings = () => {
                         ))}
                     </select>
                 </div>
+
+                <SaveSearchPanel
+                    criteria={appliedCriteria}
+                    locationLabel={appliedLocationLabel}
+                    categoryName={categories.find((cat) => cat.id === appliedCriteria.category_id)?.name}
+                />
 
                 {locationWarning && (
                     <div className="mb-8 text-center text-red-500 bg-red-100 p-3 rounded">
@@ -430,7 +460,7 @@ export const Listings = () => {
                         variant="outline"
                         size="sm"
                         disabled={!hasPrevPage}
-                        onClick={() => setPage((p) => p - 1)}
+                        onClick={() => goToPage(page - 1)}
                     >
                         Previous
                     </Button>
@@ -439,7 +469,7 @@ export const Listings = () => {
                         variant="outline"
                         size="sm"
                         disabled={!hasNextPage}
-                        onClick={() => setPage((p) => p + 1)}
+                        onClick={() => goToPage(page + 1)}
                     >
                         Next
                     </Button>
