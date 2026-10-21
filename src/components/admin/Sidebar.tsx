@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, Tag, PawPrint } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, Tag, PawPrint, Rocket } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export const Sidebar = () => {
@@ -12,6 +12,7 @@ export const Sidebar = () => {
         { name: 'Users', path: '/admin/users', icon: Users },
         { name: 'Categories', path: '/admin/categories', icon: Tag },
         { name: 'Horse Attributes', path: '/admin/horse-attributes', icon: PawPrint },
+        { name: 'Boost tiers', path: '/admin/boost-tiers', icon: Rocket },
         { name: 'Settings', path: '/admin/settings', icon: Settings },
     ];
 
