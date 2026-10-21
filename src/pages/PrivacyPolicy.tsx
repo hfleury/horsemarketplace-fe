@@ -64,6 +64,12 @@ export const PrivacyPolicy = () => {
                                 favorite, listing view counts, and any report you submit about a listing.
                             </li>
                             <li>
+                                <strong className="text-text-primary">Payment data:</strong> when you pay
+                                to boost a listing, we record the listing, the boost tier, its price, its
+                                start and end dates, and whether the payment succeeded. Card or bank
+                                details are handled by the payment provider and never reach us.
+                            </li>
+                            <li>
                                 <strong className="text-text-primary">Technical data:</strong> your IP
                                 address and standard web server logs, and a session cookie used to keep
                                 you signed in.
@@ -72,8 +78,8 @@ export const PrivacyPolicy = () => {
                                 <strong className="text-text-primary">Usage data:</strong> when you use
                                 key features — signing up, verifying your email, signing in, creating or
                                 publishing a listing, starting a conversation or sending a message,
-                                requesting a callback, favoriting a listing, saving a search, or reporting
-                                a listing — our server records that the action happened, linked to your
+                                requesting a callback, favoriting a listing, saving a search, reporting
+                                a listing, or paying for a boost — our server records that the action happened, linked to your
                                 account ID and the listing or category involved. It never includes the
                                 content of your messages, your phone number, or your email address.
                             </li>
@@ -116,6 +122,11 @@ export const PrivacyPolicy = () => {
                             active. If you ask us to delete your account, we delete or anonymize your
                             personal data, except where we&apos;re required to keep it for longer to
                             comply with a legal obligation.
+                        </p>
+                        <p className="mt-2">
+                            Payment records are bookkeeping records, which Swedish law
+                            (bokföringslagen) requires us to keep for seven years. If you delete your
+                            account, we keep them without the link to your account.
                         </p>
                     </div>
 
