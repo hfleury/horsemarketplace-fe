@@ -17,6 +17,7 @@ import { ConsentProvider } from './context/ConsentContext';
 import { ConsentBanner } from './components/consent/ConsentBanner';
 import { AnalyticsIdentity } from './components/consent/AnalyticsIdentity';
 import CreateProduct from './pages/CreateProduct';
+import { EditProduct } from './pages/EditProduct';
 import { Listings } from './pages/Listings';
 import { ListingDetail } from './pages/ListingDetail';
 import { Inbox } from './pages/Inbox';
@@ -50,14 +51,10 @@ function App() {
                   <Route path="/saved-searches" element={<SavedSearches />} />
                   <Route path="/boost/success" element={<BoostSuccess />} />
                   <Route path="/boost/cancel" element={<BoostCancel />} />
+                  <Route path="/create-ad" element={<CreateProduct />} />
+                  <Route path="/listings/:id/edit" element={<EditProduct />} />
                 </Route>
                 <Route path="*" element={<div className="container-custom py-20 text-center">Page Not Found</div>} />
-                <Route path="*" element={<div className="container-custom py-20 text-center">Page Not Found</div>} />
-              </Route>
-
-              {/* Protected General Routes */}
-              <Route element={<ProtectedRoute allowedRoles={['user', 'admin']} />}>
-                <Route path="/create-ad" element={<CreateProduct />} />
               </Route>
 
               {/* Protected Admin Routes */}

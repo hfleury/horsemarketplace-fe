@@ -68,6 +68,22 @@ describe('Header search', () => {
     });
 });
 
+describe('Header navigation', () => {
+    beforeEach(() => {
+        mockUser = null;
+    });
+
+    it('links "Create" to the create-listing page', () => {
+        render(
+            <MemoryRouter>
+                <Header />
+            </MemoryRouter>
+        );
+
+        expect(screen.getByRole('link', { name: 'Create' })).toHaveAttribute('href', '/create-ad');
+    });
+});
+
 describe('Header logged-in', () => {
     beforeEach(() => {
         mockUser = { username: 'alice', email: 'alice@example.com', role: 'user' };

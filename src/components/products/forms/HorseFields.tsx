@@ -5,8 +5,10 @@ import type { CreateProductRequest } from '../../../types/product';
 import { horseAttributesApi } from '../../../api/horseAttributesApi';
 import type { HorseAttributeOption } from '../../../types/horseAttributes';
 
+const OPTION_BACKED_FIELDS = ['horse.breed', 'horse.gender', 'horse.orientation'] as const;
+
 const HorseFields = () => {
-    const { register, formState: { errors } } = useFormContext<CreateProductRequest>();
+    const { register, getValues, setValue, formState: { errors } } = useFormContext<CreateProductRequest>();
 
     const [breedOptions, setBreedOptions] = useState<HorseAttributeOption[]>([]);
     const [disciplineOptions, setDisciplineOptions] = useState<HorseAttributeOption[]>([]);
@@ -44,6 +46,15 @@ const HorseFields = () => {
                 // Attribute dropdowns are a progressive enhancement; ignore fetch failures here.
             });
     }, []);
+
+    // The selects are uncontrolled, so a prefilled value set before its option
+    // existed shows as "Select ..." until it is re-applied once the options render.
+    useEffect(() => {
+        OPTION_BACKED_FIELDS.forEach((field) => {
+            const value = getValues(field);
+            if (value) setValue(field, value);
+        });
+    }, [breedOptions, genderOptions, disciplineOptions, getValues, setValue]);
 
     return (
         <div className="space-y-4">

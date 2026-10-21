@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Eye, Heart, Copy, Check, Flag, MessageCircle, Phone } from 'lucide-react';
+import { Link, useParams } from 'react-router-dom';
+import { Eye, Heart, Copy, Check, Flag, MessageCircle, Pencil, Phone } from 'lucide-react';
 import { productsApi } from '../api/products';
 import { trackEvent } from '../lib/analytics';
 import { listingViewedProperties } from '../lib/analyticsEvents';
@@ -165,6 +165,8 @@ export function ListingDetail() {
         );
     }
 
+    const isOwner = !!user?.id && user.id === product?.user_id;
+
     return (
         <section className="py-24 px-6 md:px-12 bg-background">
             <div className="container-custom">
@@ -178,6 +180,17 @@ export function ListingDetail() {
                     <>
                         <div className="relative text-center mb-12">
                             <div className="absolute right-4 top-0 flex gap-2">
+                                {isOwner && (
+                                    <Link to={`/listings/${product.id}/edit`} aria-label="Edit listing">
+                                        <IconButton
+                                            icon={<Pencil className="h-4 w-4" />}
+                                            ariaLabel="Edit listing"
+                                            variant="ghost"
+                                            size="sm"
+                                            tabIndex={-1}
+                                        />
+                                    </Link>
+                                )}
                                 <IconButton
                                     icon={linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                                     ariaLabel={linkCopied ? 'Link copied' : 'Copy link to this listing'}

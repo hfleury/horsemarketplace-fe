@@ -54,7 +54,7 @@ export const Header = () => {
         { name: 'Pages', path: '/pages' },
         { name: 'Explore', path: '/explore' },
         { name: 'Resources', path: '/resources' },
-        { name: 'Create', path: '/create' },
+        { name: 'Create', path: '/create-ad' },
     ];
 
     return (

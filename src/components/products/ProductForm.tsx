@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
+import type { DefaultValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useNavigate } from 'react-router-dom';
 
 import { ProductType, ProductStatus } from '../../types/product';
-import type { CreateProductRequest } from '../../types/product';
-import { productsApi } from '../../api/products';
-import { getCurrentPosition } from '../../lib/geolocation';
+import type { ProductFormValues } from '../../lib/products/productFormValues';
+import { extractErrorMessage } from '../../lib/errors';
 
 import Button from '../../components/ui/Button';
 import FormTextField from '../../components/ui/FormTextField';
 import HorseFields from './forms/HorseFields';
 import VehicleFields from './forms/VehicleFields';
 import EquipmentFields from './forms/EquipmentFields';
+import BoostOptions from './forms/BoostOptions';
 
 // Zod Schema
 const productSchema = z.object({
@@ -55,6 +55,11 @@ const productSchema = z.object({
         sub_type: z.string().optional(),
         boom_width: z.string().optional(),
     }).optional(),
+    boost: z.object({
+        tier_code: z.string().optional(),
+        provider: z.string().optional(),
+        starts_on: z.string().optional(),
+    }).optional(),
 }).superRefine((data, ctx) => {
     if (data.type === ProductType.Horse) {
         if (!data.horse?.name) {
@@ -65,40 +70,53 @@ const productSchema = z.object({
             });
         }
     }
+    if (data.boost?.tier_code && !data.boost.provider) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["boost", "provider"],
+            message: "Choose a payment provider"
+        });
+    }
 });
 
-const ProductForm = () => {
-    const navigate = useNavigate();
+interface ProductFormProps {
+    defaultValues?: DefaultValues<ProductFormValues>;
+    submitLabel: string;
+    /** The listing type can't change after creation. */
+    isTypeLocked?: boolean;
+    notice?: string;
+    onSubmit: (values: ProductFormValues) => Promise<void>;
+}
+
+function withFormDefaults(defaultValues?: DefaultValues<ProductFormValues>): DefaultValues<ProductFormValues> {
+    return {
+        status: ProductStatus.Published, // Default to published intention
+        type: ProductType.Horse,
+        transaction_type: 'Sale',
+        ...defaultValues,
+        boost: { tier_code: '', ...defaultValues?.boost },
+    };
+}
+
+const ProductForm = ({ defaultValues, submitLabel, isTypeLocked = false, notice, onSubmit }: ProductFormProps) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
 
-    const methods = useForm<CreateProductRequest>({
+    const methods = useForm<ProductFormValues>({
         resolver: zodResolver(productSchema),
-        defaultValues: {
-            status: ProductStatus.Published, // Default to published intention
-            type: ProductType.Horse,
-            transaction_type: 'Sale'
-        }
+        defaultValues: withFormDefaults(defaultValues),
     });
 
     const { register, handleSubmit, watch, formState: { errors } } = methods;
     const selectedType = watch('type');
 
-    const onSubmit = async (data: CreateProductRequest) => {
+    const submit = async (values: ProductFormValues) => {
         setIsSubmitting(true);
         setSubmitError(null);
         try {
-            const position = await getCurrentPosition();
-            if (position) {
-                data.latitude = position.lat;
-                data.longitude = position.lng;
-            }
-            await productsApi.createProduct(data);
-            // Redirect to listings or dashboard?
-            navigate('/');
+            await onSubmit(values);
         } catch (err) {
-            const message = err instanceof Error ? err.message : "Failed to create ad";
-            setSubmitError(message);
+            setSubmitError(extractErrorMessage(err, 'Failed to save the listing'));
         } finally {
             setIsSubmitting(false);
         }
@@ -106,8 +124,10 @@ const ProductForm = () => {
 
     return (
         <FormProvider {...methods}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
-                <h2 className="text-2xl font-bold mb-6">Create New Ad</h2>
+            <form onSubmit={handleSubmit(submit)} className="space-y-6 max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
+                {notice && (
+                    <p className="p-4 text-sm text-blue-800 bg-blue-50 rounded-lg">{notice}</p>
+                )}
 
                 {submitError && (
                     <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
@@ -118,8 +138,10 @@ const ProductForm = () => {
                 {/* Common Fields */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <label htmlFor="product-type" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                         <select
+                            id="product-type"
+                            disabled={isTypeLocked}
                             {...register('type')}
                             className="w-full px-3 py-2 border border-input-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
                         >
@@ -191,9 +213,11 @@ const ProductForm = () => {
                     {selectedType === ProductType.Equipment && <EquipmentFields />}
                 </div>
 
+                <BoostOptions />
+
                 <div className="flex justify-end pt-6">
                     <Button type="submit" isLoading={isSubmitting} className="w-full md:w-auto">
-                        Publish Ad
+                        {submitLabel}
                     </Button>
                 </div>
             </form>

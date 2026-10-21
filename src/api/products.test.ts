@@ -132,3 +132,37 @@ describe('productsApi.getById', () => {
     expect(result).toBe(envelope);
   });
 });
+
+describe('productsApi.createProduct', () => {
+  beforeEach(() => {
+    vi.mocked(apiFetch).mockReset();
+  });
+
+  it('POSTs the listing as JSON to /products', async () => {
+    const request = {
+      title: 'Bella', type: 'horse', status: 'published', price_sek: 1000,
+      description: 'Calm', city: 'Uppsala', transaction_type: 'Sale',
+    } as const;
+
+    await productsApi.createProduct(request);
+
+    expect(apiFetch).toHaveBeenCalledWith('/products', { method: 'POST', body: JSON.stringify(request) });
+  });
+});
+
+describe('productsApi.updateProduct', () => {
+  beforeEach(() => {
+    vi.mocked(apiFetch).mockReset();
+  });
+
+  it('PUTs the changes as JSON to /products/:id', async () => {
+    const request = {
+      title: 'Bella', type: 'horse', price_sek: 1000,
+      description: 'Calm', city: 'Uppsala', transaction_type: 'Sale',
+    } as const;
+
+    await productsApi.updateProduct('p1', request);
+
+    expect(apiFetch).toHaveBeenCalledWith('/products/p1', { method: 'PUT', body: JSON.stringify(request) });
+  });
+});
