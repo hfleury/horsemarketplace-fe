@@ -1,7 +1,10 @@
 import { Facebook, Twitter, Instagram, Linkedin, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useConsent } from '../../hooks/useConsent';
 
 export const Footer = () => {
+    const { openSettings } = useConsent();
+
     return (
         <footer className="bg-dark-100/30 border-t border-dark-200 pt-16 pb-8">
             <div className="container-custom">
@@ -78,6 +81,7 @@ export const Footer = () => {
                     <div className="flex gap-6 text-sm text-text-muted">
                         <Link to="#" className="hover:text-text-primary transition-colors">Terms & Conditions</Link>
                         <Link to="/privacy-policy" className="hover:text-text-primary transition-colors">Privacy Policy</Link>
+                        <button type="button" onClick={openSettings} className="hover:text-text-primary transition-colors">Cookie settings</button>
                     </div>
                 </div>
             </div>

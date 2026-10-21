@@ -6,6 +6,7 @@ import { productsApi } from '../api/products';
 import { favoritesApi } from '../api/favorites';
 import { FavoritesProvider } from '../context/FavoritesContext';
 import { useAuth } from '../hooks/useAuth';
+import { trackEvent } from '../lib/analytics';
 import { ProductStatus, ProductType, type Product } from '../types/product';
 
 vi.mock('../api/products', () => ({
@@ -17,6 +18,8 @@ vi.mock('../api/favorites', () => ({
 }));
 
 vi.mock('../hooks/useAuth', () => ({ useAuth: vi.fn() }));
+
+vi.mock('../lib/analytics', () => ({ trackEvent: vi.fn() }));
 
 vi.mock('../components/products/MessageSellerPanel', () => ({
     MessageSellerPanel: ({ open }: { open: boolean }) =>
@@ -86,6 +89,24 @@ describe('ListingDetail', () => {
         expect(productsApi.getById).toHaveBeenCalledWith('p1');
         expect(screen.getByText('3 views')).toBeInTheDocument();
         expect(screen.getByText('5 favorites')).toBeInTheDocument();
+    });
+
+    it('tracks a listing view once the listing loads', async () => {
+        vi.mocked(trackEvent).mockClear();
+        vi.mocked(productsApi.getById).mockResolvedValue({
+            status: 'success',
+            data: makeProduct({ category_id: 'cat-1' }),
+        });
+
+        renderAtListing('p1');
+
+        await waitFor(() =>
+            expect(trackEvent).toHaveBeenCalledWith('listing_viewed', {
+                listing_id: 'p1',
+                category_id: 'cat-1',
+                listing_type: 'horse',
+            })
+        );
     });
 
     it('shows singular wording when a count is exactly 1', async () => {

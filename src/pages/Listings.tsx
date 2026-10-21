@@ -6,6 +6,8 @@ import { geocodingApi } from '../api/geocoding';
 import { getCurrentPosition } from '../lib/geolocation';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { useUrlDraft } from '../hooks/useUrlDraft';
+import { trackEvent } from '../lib/analytics';
+import { listingsSearchedProperties } from '../lib/analyticsEvents';
 import { horseAttributesApi } from '../api/horseAttributesApi';
 import { RADIUS_OPTIONS_KM, type RangeCriteriaKey } from '../lib/searchCriteria/queryParams';
 import { buildListingsSearchParams, parseListingsSearchParams } from '../lib/searchCriteria/listingsUrl';
@@ -151,6 +153,7 @@ export const Listings = () => {
                 if (response.status === 'success' && response.data) {
                     setProducts(response.data.items ?? []);
                     setTotal(response.data.total);
+                    trackEvent('listings_searched', listingsSearchedProperties(appliedCriteria, page, response.data.total));
                 } else {
                     setError(response.message || 'Failed to fetch listings');
                 }
