@@ -10,6 +10,7 @@ import { AdminLayout } from './components/admin/AdminLayout';
 import { Users } from './pages/admin/Users';
 import { Categories } from './pages/admin/Categories';
 import { HorseAttributes } from './pages/admin/HorseAttributes';
+import { BoostTiers } from './pages/admin/BoostTiers';
 import { AuthProvider } from './context/AuthContext';
 import { FavoritesProvider } from './context/FavoritesContext';
 import { ConsentProvider } from './context/ConsentContext';
@@ -62,6 +63,7 @@ function App() {
                   <Route path="users" element={<Users />} />
                   <Route path="categories" element={<Categories />} />
                   <Route path="horse-attributes" element={<HorseAttributes />} />
+                  <Route path="boost-tiers" element={<BoostTiers />} />
                 </Route>
               </Route>
             </Routes>
