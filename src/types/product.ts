@@ -127,3 +127,6 @@ export interface CreateProductRequest {
     vehicle?: VehicleSpecifics;
     equipment?: EquipmentSpecifics;
 }
+
+/** Status and coordinates are decided by the server on edit. */
+export type UpdateProductRequest = Omit<CreateProductRequest, 'status' | 'latitude' | 'longitude'>;

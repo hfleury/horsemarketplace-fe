@@ -4,6 +4,30 @@ import { authApi } from '../api/auth';
 import { extractErrorMessage } from '../lib/errors';
 import { AuthContext } from './authContext';
 
+interface StoredSession {
+  token: string;
+  user: User;
+}
+
+// Sessions saved before the login response carried the user's id are treated
+// as stale, so owner-only features can rely on user.id.
+function readStoredSession(): StoredSession | null {
+  const savedToken = localStorage.getItem('authToken');
+  const savedUser = localStorage.getItem('authUser');
+  if (!savedToken || !savedUser) return null;
+  try {
+    const user: User = JSON.parse(savedUser);
+    return user?.id ? { token: savedToken, user } : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearStoredSession() {
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('authUser');
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -12,17 +36,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // On app start, check for existing token in localStorage
   useEffect(() => {
-    const savedToken = localStorage.getItem('authToken');
-    const savedUser = localStorage.getItem('authUser');
-    if (savedToken && savedUser) {
-      try {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
-      } catch {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('authUser');
-      }
+    const session = readStoredSession();
+    if (!session) {
+      clearStoredSession();
+      return;
     }
+    setToken(session.token);
+    setUser(session.user);
   }, []);
 
   const login = async (username: string, password: string) => {
@@ -52,8 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('authUser');
+    clearStoredSession();
   };
 
   return (

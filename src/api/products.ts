@@ -1,5 +1,5 @@
 import type { ApiResponse } from '../types/api';
-import type { CreateProductRequest, PaginatedProducts, Product } from '../types/product';
+import type { CreateProductRequest, PaginatedProducts, Product, UpdateProductRequest } from '../types/product';
 import type { SearchCriteria } from '../types/searchCriteria';
 import { apiFetch } from '../lib/apiClient';
 import { criteriaToQueryParams } from '../lib/searchCriteria/queryParams';
@@ -8,6 +8,12 @@ export const productsApi = {
   createProduct(data: CreateProductRequest) {
     return apiFetch<ApiResponse<Product>>('/products', {
       method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  updateProduct(id: string, data: UpdateProductRequest) {
+    return apiFetch<ApiResponse<Product>>(`/products/${id}`, {
+      method: 'PUT',
       body: JSON.stringify(data),
     });
   },

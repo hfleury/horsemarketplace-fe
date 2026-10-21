@@ -390,4 +390,42 @@ describe('ListingDetail', () => {
             expect(favoritesApi.add).toHaveBeenCalledWith('p1');
         });
     });
+
+    describe('edit listing link', () => {
+        function signInAs(user: { id?: string; username: string; email: string } | null) {
+            vi.mocked(useAuth).mockReturnValue({
+                user,
+                token: user ? 'token' : null,
+                login: vi.fn(),
+                logout: vi.fn(),
+                loading: false,
+                error: null,
+            });
+        }
+
+        beforeEach(() => {
+            vi.mocked(productsApi.getById).mockResolvedValue({ status: 'success', data: makeProduct() });
+        });
+
+        it('shows the owner a link to edit the listing', async () => {
+            signInAs({ id: 'u1', username: 'alice', email: 'alice@example.com' });
+
+            renderAtListing('p1');
+
+            expect(await screen.findByRole('link', { name: 'Edit listing' })).toHaveAttribute('href', '/listings/p1/edit');
+        });
+
+        it.each([
+            ['a different user', { id: 'u2', username: 'bob', email: 'bob@example.com' }],
+            ['a user without an id', { username: 'alice', email: 'alice@example.com' }],
+            ['a visitor', null],
+        ])('hides the link from %s', async (_name, user) => {
+            signInAs(user);
+
+            renderAtListing('p1');
+
+            await screen.findByText('Test Horse');
+            expect(screen.queryByRole('link', { name: 'Edit listing' })).not.toBeInTheDocument();
+        });
+    });
 });

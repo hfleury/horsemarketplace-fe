@@ -8,6 +8,9 @@ export interface CheckoutRequest {
     starts_at?: string;
 }
 
+/** A boost the seller chose in the listing form, ready to send to checkout. */
+export type BoostSelection = Omit<CheckoutRequest, 'product_id'>;
+
 export interface CheckoutResponse {
     payment_id: string;
     /** Send the browser here to pay. */
