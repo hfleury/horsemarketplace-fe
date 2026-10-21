@@ -1,4 +1,6 @@
 export interface User {
+    // Missing on sessions saved before the login response included it.
+    id?: string;
     username: string;
     email: string;
     avatar?: string;

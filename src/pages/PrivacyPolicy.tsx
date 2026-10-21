@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { SectionHeader } from '../components/common/SectionHeader';
 
-const LAST_UPDATED = '2026-09-23';
+const LAST_UPDATED = '2026-10-21';
 const CONTACT_EMAIL = 'henrique@oniweb.com.br';
 
 export const PrivacyPolicy = () => {
@@ -68,6 +68,20 @@ export const PrivacyPolicy = () => {
                                 address and standard web server logs, and a session cookie used to keep
                                 you signed in.
                             </li>
+                            <li>
+                                <strong className="text-text-primary">Usage data:</strong> when you use
+                                key features — signing up, verifying your email, signing in, creating or
+                                publishing a listing, starting a conversation or sending a message,
+                                requesting a callback, favoriting a listing, saving a search, or reporting
+                                a listing — our server records that the action happened, linked to your
+                                account ID and the listing or category involved. It never includes the
+                                content of your messages, your phone number, or your email address.
+                            </li>
+                            <li>
+                                <strong className="text-text-primary">Browsing data (only with your
+                                consent):</strong> the pages you view, the filters you use when searching
+                                (not the words you type), and the listings you open.
+                            </li>
                         </ul>
                     </div>
 
@@ -80,6 +94,7 @@ export const PrivacyPolicy = () => {
                             <li>Send account-related emails: signup confirmation, password reset, and message notifications. We do not send marketing email, and we never buy, sell, or import third-party email lists — every address on file comes from a user registering directly on our site.</li>
                             <li>Resolve approximate coordinates for a listing&apos;s stated city/area, to support location-based search.</li>
                             <li>Review reports submitted about a listing, to prevent fraud and abuse (our legitimate interest in keeping the marketplace trustworthy).</li>
+                            <li>Understand which features are used so we can improve the marketplace. Usage data recorded by our server relies on our legitimate interest in running and improving the service; browsing data is collected only if you accept analytics, and you can withdraw that consent at any time.</li>
                         </ul>
                     </div>
 
@@ -90,6 +105,7 @@ export const PrivacyPolicy = () => {
                             <li><strong className="text-text-primary">Hosting:</strong> our server infrastructure (database, file storage, and application) runs on a DigitalOcean server, currently in an EU region.</li>
                             <li><strong className="text-text-primary">Geocoding:</strong> if you provide a city/area for a listing, we send that text to Mapbox to resolve it into approximate coordinates.</li>
                             <li><strong className="text-text-primary">Email delivery:</strong> account-related emails (signup confirmation, password reset, message notifications) are sent through our email service provider.</li>
+                            <li><strong className="text-text-primary">Product analytics:</strong> usage and browsing data are processed on our behalf by PostHog, using its EU Cloud hosted in Frankfurt, Germany.</li>
                         </ul>
                     </div>
 
@@ -131,10 +147,17 @@ export const PrivacyPolicy = () => {
                     </div>
 
                     <div>
-                        <h2 className="text-xl font-bold text-text-primary mb-3">7. Cookies</h2>
+                        <h2 className="text-xl font-bold text-text-primary mb-3">7. Cookies and local storage</h2>
                         <p>
-                            We use a single essential cookie to keep you signed in between visits. We
-                            do not use advertising or third-party tracking cookies.
+                            Some data is kept in your browser because the site needs it to work: a
+                            cookie and local storage that keep you signed in, your light/dark theme,
+                            and your analytics choice. We do not use advertising cookies.
+                        </p>
+                        <p className="mt-2">
+                            Analytics storage from PostHog is used only after you click
+                            &quot;Accept&quot; in the cookie banner. If you click &quot;Reject&quot;,
+                            nothing is sent from your browser to PostHog. You can change your choice at
+                            any time with &quot;Cookie settings&quot; at the bottom of every page.
                         </p>
                     </div>
 

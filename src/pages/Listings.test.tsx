@@ -9,6 +9,7 @@ import { horseAttributesApi } from '../api/horseAttributesApi';
 import { savedSearchesApi } from '../api/savedSearches';
 import { getCurrentPosition } from '../lib/geolocation';
 import { useAuth } from '../hooks/useAuth';
+import { trackEvent } from '../lib/analytics';
 import { ProductStatus, ProductType, type Product } from '../types/product';
 import type { HorseAttributeType } from '../types/horseAttributes';
 import type { SearchCriteria } from '../types/searchCriteria';
@@ -34,6 +35,8 @@ vi.mock('../lib/geolocation', () => ({
 }));
 
 vi.mock('../hooks/useAuth', () => ({ useAuth: vi.fn() }));
+
+vi.mock('../lib/analytics', () => ({ trackEvent: vi.fn() }));
 
 vi.mock('../api/savedSearches', () => ({
     savedSearchesApi: { create: vi.fn() },
@@ -237,6 +240,23 @@ describe('Listings', () => {
         expect(screen.getByLabelText('Keyword')).toHaveValue('foo');
 
         await waitFor(() => expect(productsApi.list).toHaveBeenCalledWith({ q: 'foo' }, FIRST_PAGE));
+    });
+
+    it('tracks a search with the filter names and result count, not the keyword', async () => {
+        vi.mocked(trackEvent).mockClear();
+        mockListings(7);
+
+        renderListings('/listings?q=private+words');
+
+        await waitFor(() =>
+            expect(trackEvent).toHaveBeenCalledWith('listings_searched', {
+                filters: ['q'],
+                category_id: undefined,
+                page: 1,
+                result_count: 7,
+            })
+        );
+        expect(JSON.stringify(vi.mocked(trackEvent).mock.calls)).not.toContain('private');
     });
 
     it('debounces keyword input changes before re-fetching, and resets to page 1', async () => {

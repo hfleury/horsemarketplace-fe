@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Eye, Heart, Copy, Check, Flag, MessageCircle, Phone } from 'lucide-react';
 import { productsApi } from '../api/products';
+import { trackEvent } from '../lib/analytics';
+import { listingViewedProperties } from '../lib/analyticsEvents';
 import { formatPrice } from '../lib/formatPrice';
 import { formatCount } from '../lib/pluralize';
 import { PhotoGallery } from '../components/products/PhotoGallery';
@@ -112,6 +114,7 @@ export function ListingDetail() {
                 const response = await productsApi.getById(id!);
                 if (response.status === 'success' && response.data) {
                     setProduct(response.data);
+                    trackEvent('listing_viewed', listingViewedProperties(response.data));
                 } else {
                     setError(response.message || 'Listing not found');
                 }

@@ -34,6 +34,8 @@ jobs:
           push: true
           build-args: |
             VITE_API_URL=${{ vars.BACKEND_URL }}
+            VITE_POSTHOG_KEY=${{ vars.POSTHOG_KEY }}
+            VITE_POSTHOG_HOST=https://eu.i.posthog.com
           tags: |
             ghcr.io/hfleury/horsemarketplace-fe:latest
             ghcr.io/hfleury/horsemarketplace-fe:${{ github.event.release.tag_name }}

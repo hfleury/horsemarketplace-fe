@@ -14,6 +14,11 @@ COPY . .
 # must be injected as a build-arg per environment.
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
+# Product analytics; an empty key builds the app with analytics disabled.
+ARG VITE_POSTHOG_KEY
+ENV VITE_POSTHOG_KEY=$VITE_POSTHOG_KEY
+ARG VITE_POSTHOG_HOST
+ENV VITE_POSTHOG_HOST=$VITE_POSTHOG_HOST
 
 # Build the app
 RUN npm run build

@@ -12,6 +12,9 @@ import { Categories } from './pages/admin/Categories';
 import { HorseAttributes } from './pages/admin/HorseAttributes';
 import { AuthProvider } from './context/AuthContext';
 import { FavoritesProvider } from './context/FavoritesContext';
+import { ConsentProvider } from './context/ConsentContext';
+import { ConsentBanner } from './components/consent/ConsentBanner';
+import { AnalyticsIdentity } from './components/consent/AnalyticsIdentity';
 import CreateProduct from './pages/CreateProduct';
 import { Listings } from './pages/Listings';
 import { ListingDetail } from './pages/ListingDetail';
@@ -24,44 +27,48 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <FavoritesProvider>
-          <Routes>
-            {/* Public Routes with Main Layout */}
-            <Route element={<Layout><Outlet /></Layout>}>
-              <Route path="/" element={<Home />} />
-              <Route path="/home-6" element={<Home />} />
-              <Route path="/listings" element={<Listings />} />
-              <Route path="/listings/:id" element={<ListingDetail />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <ConsentProvider>
+          <FavoritesProvider>
+            <Routes>
+              {/* Public Routes with Main Layout */}
+              <Route element={<Layout><Outlet /></Layout>}>
+                <Route path="/" element={<Home />} />
+                <Route path="/home-6" element={<Home />} />
+                <Route path="/listings" element={<Listings />} />
+                <Route path="/listings/:id" element={<ListingDetail />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route element={<ProtectedRoute allowedRoles={['user', 'admin']} />}>
+                  <Route path="/inbox" element={<Inbox />} />
+                  <Route path="/favorites" element={<Favorites />} />
+                  <Route path="/saved-searches" element={<SavedSearches />} />
+                </Route>
+                <Route path="*" element={<div className="container-custom py-20 text-center">Page Not Found</div>} />
+                <Route path="*" element={<div className="container-custom py-20 text-center">Page Not Found</div>} />
+              </Route>
+
+              {/* Protected General Routes */}
               <Route element={<ProtectedRoute allowedRoles={['user', 'admin']} />}>
-                <Route path="/inbox" element={<Inbox />} />
-                <Route path="/favorites" element={<Favorites />} />
-                <Route path="/saved-searches" element={<SavedSearches />} />
+                <Route path="/create-ad" element={<CreateProduct />} />
               </Route>
-              <Route path="*" element={<div className="container-custom py-20 text-center">Page Not Found</div>} />
-              <Route path="*" element={<div className="container-custom py-20 text-center">Page Not Found</div>} />
-            </Route>
 
-            {/* Protected General Routes */}
-            <Route element={<ProtectedRoute allowedRoles={['user', 'admin']} />}>
-              <Route path="/create-ad" element={<CreateProduct />} />
-            </Route>
-
-            {/* Protected Admin Routes */}
-            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<div className="p-4">Dashboard Overview (Coming Soon)</div>} />
-                <Route path="users" element={<Users />} />
-                <Route path="categories" element={<Categories />} />
-                <Route path="horse-attributes" element={<HorseAttributes />} />
+              {/* Protected Admin Routes */}
+              <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<div className="p-4">Dashboard Overview (Coming Soon)</div>} />
+                  <Route path="users" element={<Users />} />
+                  <Route path="categories" element={<Categories />} />
+                  <Route path="horse-attributes" element={<HorseAttributes />} />
+                </Route>
               </Route>
-            </Route>
-          </Routes>
-        </FavoritesProvider>
+            </Routes>
+            <AnalyticsIdentity />
+            <ConsentBanner />
+          </FavoritesProvider>
+        </ConsentProvider>
       </AuthProvider>
     </BrowserRouter>
   );
