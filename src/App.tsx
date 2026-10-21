@@ -23,6 +23,8 @@ import { Inbox } from './pages/Inbox';
 import { Favorites } from './pages/Favorites';
 import { SavedSearches } from './pages/SavedSearches';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
+import { BoostSuccess } from './pages/BoostSuccess';
+import { BoostCancel } from './pages/BoostCancel';
 
 function App() {
   return (
@@ -46,6 +48,8 @@ function App() {
                   <Route path="/inbox" element={<Inbox />} />
                   <Route path="/favorites" element={<Favorites />} />
                   <Route path="/saved-searches" element={<SavedSearches />} />
+                  <Route path="/boost/success" element={<BoostSuccess />} />
+                  <Route path="/boost/cancel" element={<BoostCancel />} />
                 </Route>
                 <Route path="*" element={<div className="container-custom py-20 text-center">Page Not Found</div>} />
                 <Route path="*" element={<div className="container-custom py-20 text-center">Page Not Found</div>} />
